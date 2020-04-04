@@ -4263,34 +4263,6 @@ exports.debug = debug; // for test
 
 /***/ }),
 
-/***/ 142:
-/***/ (function(__unusedmodule, exports, __webpack_require__) {
-
-"use strict";
-
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-    result["default"] = mod;
-    return result;
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const core = __importStar(__webpack_require__(470));
-function setOutputs(outputs) {
-    var _a, _b, _c;
-    core.setOutput('new-release', String(outputs.newRelease));
-    core.setOutput('pre-release', String(outputs.preRelease));
-    core.setOutput('version', String(outputs === null || outputs === void 0 ? void 0 : outputs.version));
-    core.setOutput('major', String((_a = outputs === null || outputs === void 0 ? void 0 : outputs.version) === null || _a === void 0 ? void 0 : _a.major));
-    core.setOutput('minor', String((_b = outputs === null || outputs === void 0 ? void 0 : outputs.version) === null || _b === void 0 ? void 0 : _b.minor));
-    core.setOutput('patch', String((_c = outputs === null || outputs === void 0 ? void 0 : outputs.version) === null || _c === void 0 ? void 0 : _c.patch));
-}
-exports.setOutputs = setOutputs;
-
-
-/***/ }),
-
 /***/ 143:
 /***/ (function(module, __unusedexports, __webpack_require__) {
 
@@ -4841,20 +4813,20 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(__webpack_require__(470));
 const inputHelper = __importStar(__webpack_require__(821));
-const outputHelper = __importStar(__webpack_require__(142));
 const autoCommandManager = __importStar(__webpack_require__(917));
 const auto_command_manager_1 = __webpack_require__(917);
-const auto_outputs_1 = __webpack_require__(302);
-const semver_1 = __webpack_require__(876);
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         const settings = inputHelper.getInputs();
         try {
+            core.debug(`Running auto with the following action settings:\n${settings}`);
             const commandManager = yield autoCommandManager.createCommandManager(settings.repo, settings.owner, settings.githubApi, settings.plugins);
             let stdout = yield commandManager.version(settings.onlyPublishWithReleaseLabel, settings.from);
-            let autoOutputs = new auto_outputs_1.AutoOutputs();
-            autoOutputs.version = new semver_1.SemVer(stdout);
-            core.info(String(autoOutputs));
+            // NOTE: The version command doesn't return a semver - it returns the string indication the KIND of semver bump
+            // TODO: Figure out what the semver will actually be
+            /*let autoOutputs = new AutoOutputs()
+            autoOutputs.version = new SemVer(stdout)
+            core.info(String(autoOutputs))*/
             core.startGroup('Starting the run of auto');
             switch (settings.command) {
                 // Setup Commands
@@ -4911,7 +4883,7 @@ function run() {
                 }
             }
             core.endGroup();
-            outputHelper.setOutputs(autoOutputs);
+            //outputHelper.setOutputs(autoOutputs)
         }
         catch (error) {
             core.setFailed(error.message);
@@ -5644,25 +5616,6 @@ paginateRest.VERSION = VERSION;
 
 exports.paginateRest = paginateRest;
 //# sourceMappingURL=index.js.map
-
-
-/***/ }),
-
-/***/ 302:
-/***/ (function(__unusedmodule, exports, __webpack_require__) {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", { value: true });
-const semver_1 = __webpack_require__(876);
-class AutoOutputs {
-    constructor() {
-        this.newRelease = false;
-        this.preRelease = false;
-        this.version = new semver_1.SemVer('0.0.1');
-    }
-}
-exports.AutoOutputs = AutoOutputs;
 
 
 /***/ }),
@@ -12185,22 +12138,21 @@ function getInputs() {
     result.command = auto_command_manager_1.AutoCommand[core.getInput('commands') || 'shipit'];
     result.repo = core.getInput('repo') || repoName;
     result.owner = core.getInput('owner') || repoOwner;
-    result.githubApi = core.getInput('githubApi');
+    result.githubApi = core.getInput('github-api');
     result.plugins = (_b = (_a = core
         .getInput('plugins')) === null || _a === void 0 ? void 0 : _a.split('\n')) === null || _b === void 0 ? void 0 : _b.filter(x => x !== '');
-    result.dryRun = (core.getInput('dryRun') || 'false').toUpperCase() === 'TRUE';
-    result.baseBranch = core.getInput('baseBranch');
+    result.dryRun = (core.getInput('dry-run') || 'false').toUpperCase() === 'TRUE';
+    result.baseBranch = core.getInput('base-branch');
     result.from = core.getInput('from');
     result.onlyGraduateWithReleaseLabel =
-        (core.getInput('onlyGraduateWithReleaseLabel') || 'false').toUpperCase() ===
-            'TRUE';
+        (core.getInput('only-graduate-with-release-label') || 'false').toUpperCase() === 'TRUE';
     result.onlyPublishWithReleaseLabel =
-        (core.getInput('onlyPublishWithReleaseLabel') || 'true').toUpperCase() ===
+        (core.getInput('only-publish-on-release-label') || 'true').toUpperCase() ===
             'TRUE';
     result.name = core.getInput('name');
     result.email = core.getInput('email');
     result.noVersionPrefix =
-        (core.getInput('noVersionPrefix') || 'false').toUpperCase() === 'TRUE';
+        (core.getInput('no-version-prefix') || 'false').toUpperCase() === 'TRUE';
     result.to = core.getInput('to');
     result.title = core.getInput('title');
     result.message = core.getInput('message');
@@ -12208,9 +12160,9 @@ function getInputs() {
     if (isNaN(result.pr) || result.pr < 0) {
         result.pr = 0;
     }
-    result.useVersion = core.getInput('useVersion');
+    result.useVersion = core.getInput('use-version');
     result.preRelease =
-        (core.getInput('preRelease') || 'false').toUpperCase() === 'TRUE';
+        (core.getInput('pre-release') || 'false').toUpperCase() === 'TRUE';
     result.build = core.getInput('build');
     result.force = (core.getInput('force') || 'false').toUpperCase() === 'TRUE';
     result.context = core.getInput('context');
@@ -12219,7 +12171,7 @@ function getInputs() {
     result.state = core.getInput('state') ? auto_command_manager_1.PrState[core.getInput('state')] : null;
     result.description = core.getInput('description');
     result.edit = (core.getInput('edit') || 'false').toUpperCase() === 'TRUE';
-    result.del = (core.getInput('del') || 'false').toUpperCase() === 'TRUE';
+    result.del = (core.getInput('delete') || 'false').toUpperCase() === 'TRUE';
     return result;
 }
 exports.getInputs = getInputs;
@@ -27881,7 +27833,7 @@ const io = __importStar(__webpack_require__(1));
 const path = __importStar(__webpack_require__(622));
 const semver_1 = __webpack_require__(876);
 const preload_1 = __importDefault(__webpack_require__(381));
-exports.MinimumAutoVersion = new semver_1.SemVer('9.25.0');
+exports.MinimumAutoVersion = new semver_1.SemVer('9.25.2');
 function createCommandManager(repo, owner, githubApi, plugins) {
     return __awaiter(this, void 0, void 0, function* () {
         return yield AutoCommandManager.createCommandManager(repo, owner, githubApi, plugins);
@@ -27889,11 +27841,46 @@ function createCommandManager(repo, owner, githubApi, plugins) {
 }
 exports.createCommandManager = createCommandManager;
 class AutoCommandManager {
-    // Private constructor; use createCommandManager(
     constructor() {
         this.autoEnv = {};
         this.autoCommand = '';
         this.globalArgs = [];
+        this.useNpmAuto = false;
+    }
+    static createCommandManager(repo, owner, githubApi, plugins) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const result = new AutoCommandManager();
+            yield result.initializeCommandManager(repo, owner, githubApi, plugins);
+            return result;
+        });
+    }
+    static commonChangelogReleaseArgs(args, dryRun, noVersionPrefix, name, email, from) {
+        if (dryRun) {
+            args.push('--dry-run');
+        }
+        if (noVersionPrefix) {
+            args.push('--no-version-prefix');
+        }
+        if (name) {
+            args.push('--name', name);
+        }
+        if (email) {
+            args.push('--email', email);
+        }
+        if (from) {
+            args.push('--from', from);
+        }
+    }
+    static commonPrArgs(args, dryRun, pr, context) {
+        if (dryRun) {
+            args.push('--dry-run');
+        }
+        if (pr > 0) {
+            args.push('--pr', pr.toString());
+        }
+        if (context) {
+            args.push('--context', context);
+        }
     }
     info(listPlugins) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -28079,42 +28066,67 @@ class AutoCommandManager {
             this.execAuto(args);
         });
     }
-    static createCommandManager(repo, owner, githubApi, plugins) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const result = new AutoCommandManager();
-            yield result.initializeCommandManager(repo, owner, githubApi, plugins);
-            return result;
-        });
-    }
     execAuto(args, allowAllExitCodes = false) {
         return __awaiter(this, void 0, void 0, function* () {
             const result = new AutoOutput();
-            const env = {};
-            for (const key of Object.keys(process.env)) {
-                env[key] = process.env[key];
-            }
-            for (const key of Object.keys(this.autoEnv)) {
-                env[key] = this.autoEnv[key];
-            }
+            let execArgs;
             const stdout = [];
-            const options = {
-                cwd: path.resolve(__dirname),
-                env,
-                ignoreReturnCode: allowAllExitCodes,
-                listeners: {
-                    stdout: (data) => {
-                        stdout.push(data.toString());
-                    }
-                }
-            };
-            const execArgs = [...this.globalArgs, ...args];
+            const env = this.getEnv();
+            if (core.isDebug()) {
+                execArgs = ['-vv', ...args, ...this.globalArgs];
+            }
+            else {
+                execArgs = [...args, ...this.globalArgs];
+            }
+            this.useNpmAuto && execArgs.unshift('auto');
+            const options = this.getExecOptions(stdout, env, allowAllExitCodes);
             result.exitCode = yield exec.exec(`"${this.autoCommand}"`, execArgs, options);
             result.stdout = stdout.join('');
             return result;
         });
     }
+    getEnv() {
+        const env = {};
+        for (const key of Object.keys(process.env)) {
+            env[key] = process.env[key];
+        }
+        for (const key of Object.keys(this.autoEnv)) {
+            env[key] = this.autoEnv[key];
+        }
+        return env;
+    }
+    getExecOptions(stdout, env = {}, allowAllExitCodes = false) {
+        return {
+            cwd: path.resolve(__dirname),
+            env,
+            ignoreReturnCode: allowAllExitCodes,
+            listeners: {
+                stdout: (data) => {
+                    stdout.push(data.toString());
+                }
+            }
+        };
+    }
     initializeCommandManager(repo, owner, githubApi, plugins) {
         return __awaiter(this, void 0, void 0, function* () {
+            try {
+                this.autoCommand = yield io.which('npx', true);
+                const stdout = [];
+                const env = this.getEnv();
+                const options = this.getExecOptions(stdout, env);
+                const args = ['ci', '--only=prod'];
+                yield exec.exec('"npm"', args, options);
+                core.info(stdout === null || stdout === void 0 ? void 0 : stdout.join(''));
+                this.useNpmAuto = true;
+            }
+            catch (npxError) {
+                try {
+                    this.autoCommand = yield io.which('auto', true);
+                }
+                catch (autoError) {
+                    throw new Error('Unable to locate executable file for either npx or auto');
+                }
+            }
             if (repo) {
                 this.globalArgs.push('--repo', repo);
             }
@@ -28125,19 +28137,7 @@ class AutoCommandManager {
                 this.globalArgs.push('--githubApi', githubApi);
             }
             if (plugins && plugins.length > 0) {
-                this.globalArgs.push('--plugins', `[${plugins.join(' ')}]`);
-            }
-            try {
-                this.autoCommand = yield io.which('npx', true);
-                this.autoCommand = `${this.autoCommand} auto`;
-            }
-            catch (npxError) {
-                try {
-                    this.autoCommand = yield io.which('auto', true);
-                }
-                catch (autoError) {
-                    throw new Error('Unable to locate executable file for either npx or auto');
-                }
+                this.globalArgs.push('--plugins', ...plugins);
             }
             core.debug('Getting auto version');
             let autoVersion;
@@ -28156,34 +28156,6 @@ class AutoCommandManager {
                 }
             }
         });
-    }
-    static commonChangelogReleaseArgs(args, dryRun, noVersionPrefix, name, email, from) {
-        if (dryRun) {
-            args.push('--dry-run');
-        }
-        if (noVersionPrefix) {
-            args.push('--no-version-prefix');
-        }
-        if (name) {
-            args.push('--name', name);
-        }
-        if (email) {
-            args.push('--email', email);
-        }
-        if (from) {
-            args.push('--from', from);
-        }
-    }
-    static commonPrArgs(args, dryRun, pr, context) {
-        if (dryRun) {
-            args.push('--dry-run');
-        }
-        if (pr > 0) {
-            args.push('--pr', pr.toString());
-        }
-        if (context) {
-            args.push('--context', context);
-        }
     }
 }
 var AutoCommand;

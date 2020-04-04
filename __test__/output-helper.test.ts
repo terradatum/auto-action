@@ -4,16 +4,12 @@ import {AutoOutputs, IAutoOutputs} from '../src/auto-outputs'
 import {SemVer} from 'semver'
 import * as fsHelper from '../src/fs-helper'
 import * as path from 'path'
-import * as github from '@actions/github'
 
 const originalGitHubWorkspace = process.env['GITHUB_WORKSPACE']
 const gitHubWorkspace = path.resolve('/checkout-tests/workspace')
 
 // Inputs for mock @actions/core
 let outputs = {} as any
-
-// Shallow clone original @actions/github context
-let originalContext = {...github.context}
 
 describe('output-helper tests', () => {
   beforeAll(() => {
@@ -40,6 +36,11 @@ describe('output-helper tests', () => {
   })
 
   beforeEach(() => {
+    // Restore GitHub workspace
+    delete process.env['GITHUB_WORKSPACE']
+    if (originalGitHubWorkspace) {
+      process.env['GITHUB_WORKSPACE'] = originalGitHubWorkspace
+    }
     // Reset inputs
     outputs = {}
   })
@@ -55,10 +56,10 @@ describe('output-helper tests', () => {
     expect(outputs).toBeTruthy()
     expect(outputs['new-release']).toBe('false')
     expect(outputs['pre-release']).toBe('false')
-    expect(outputs.version).toBe(String(new SemVer('0.0.1')))
+    expect(outputs.version).toBe(String(new SemVer('0.0.0')))
     expect(outputs.major).toBe('0')
     expect(outputs.minor).toBe('0')
-    expect(outputs.patch).toBe('1')
+    expect(outputs.patch).toBe('0')
   })
 
   it('outputs the correct version, major, minor and patch', () => {

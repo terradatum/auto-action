@@ -118,7 +118,7 @@ describe('auto-command-manager tests', () => {
     expect(execMock).toHaveBeenCalledTimes(1)
     expect(execMock).toHaveBeenCalledWith(
       '"auto"',
-      ['--repo', 'some-repo', '--owner', 'some-owner', '--version'],
+      ['--version', '--repo', 'some-repo', '--owner', 'some-owner'],
       expect.anything()
     )
   })

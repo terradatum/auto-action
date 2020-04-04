@@ -103,9 +103,18 @@ describe('input-helper tests', () => {
   })
 
   it('requires qualified repo', () => {
-    inputs.repo = 'some-unqualified-repo'
+    inputs['repo'] = 'some-unqualified-repo'
     assert.throws(() => {
       inputHelper.getInputs()
     }, /Invalid repository 'some-unqualified-repo'/)
+  })
+
+  it('sets dryRun to true with npm and git-tag plugins', () => {
+    inputs['dry-run'] = 'true'
+    inputs['plugins'] = 'npm\ngit-tag'
+    const settings: IAutoSettings = inputHelper.getInputs()
+    expect(settings).toBeTruthy()
+    expect(settings.dryRun).toBe(true)
+    expect(settings.plugins).toStrictEqual(['npm', 'git-tag'])
   })
 })

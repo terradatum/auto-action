@@ -10,6 +10,7 @@ async function run(): Promise<void> {
   const settings = inputHelper.getInputs()
 
   try {
+    core.debug(`Running auto with the following action settings:\n${settings}`)
     const commandManager = await autoCommandManager.createCommandManager(
       settings.repo,
       settings.owner,
@@ -21,9 +22,11 @@ async function run(): Promise<void> {
       settings.onlyPublishWithReleaseLabel,
       settings.from
     )
-    let autoOutputs = new AutoOutputs()
+    // NOTE: The version command doesn't return a semver - it returns the string indication the KIND of semver bump
+    // TODO: Figure out what the semver will actually be
+    /*let autoOutputs = new AutoOutputs()
     autoOutputs.version = new SemVer(stdout)
-    core.info(String(autoOutputs))
+    core.info(String(autoOutputs))*/
     core.startGroup('Starting the run of auto')
     switch (settings.command) {
       // Setup Commands
@@ -134,7 +137,7 @@ async function run(): Promise<void> {
       }
     }
     core.endGroup()
-    outputHelper.setOutputs(autoOutputs)
+    //outputHelper.setOutputs(autoOutputs)
   } catch (error) {
     core.setFailed(error.message)
   }

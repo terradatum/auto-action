@@ -1,8 +1,10 @@
 name: 'auto'
 description: 'Generate releases based on semantic version labels on pull requests, and other pull request automation tools.'
 inputs:
-  commands:
+  command:
     description: >
+      Choose one of the commands below.
+
       Setup Commands
 
       * info: Determine the environment and check if auto is set up correctly
@@ -42,7 +44,7 @@ inputs:
   owner:
     description: 'The owner of the GitHub repo. Defaults to reading from the package definition for the platform (global)'
     required: false
-  githubApi:
+  github-api:
     description: 'The url to GitHub Enterprise API (global)'
     required: false
   plugins:
@@ -50,23 +52,23 @@ inputs:
       Plugins to load auto with. If running the binary distribution, the default plugin is 'git-tag', if running from
       'node_modules', then it's 'npm'. (global)
     required: false
-  dryRun:
+  dry-run:
     description: 'Report what a command will do but do not actually do anything. (changelog, release, shipit, latest, next, canary)'
     default: 'false'
     required: false
-  baseBranch:
+  base-branch:
     description: "Branch to treat as the 'master' branch. (changelog, release, shipit, latest)"
     required: false
   from:
     description: 'Tag to start the CHANGELOG notes from. Defaults to latest tag. (version, changelog, release)'
     required: false
-  onlyGraduateOnReleaseLabel:
+  only-graduate-with-release-label:
     description: >
       Make auto publish prerelease versions when merging to master. Only PRs merged with "release" label will generate a
       "latest" release. Only use this flag if you do not want to maintain a prerelease branch, and instead only want to
       use master. (shipit)
     required: false
-  onlyPublishWithReleaseLabel:
+  only-publish-with-release-label:
     description: "Only bump version if 'release' label is on pull request. (version, shipit)"
     required: false
   name:
@@ -75,7 +77,7 @@ inputs:
   email:
     description: 'Git email to commit with. Defaults to package definition for the platform (changelog, release)'
     required: false
-  noVersionPrefix:
+  no-version-prefix:
     description: >
       Use the version as the tag without the 'v' prefix. WARNING: some plugins might need extra config to use this
       option (ex: npm). (changelog, release)
@@ -101,10 +103,10 @@ inputs:
       The pull request the command should use. Detects PR number in CI (defaults to last merged PR). (canary, label,
       pr-status, pr-check, pr-body, comment)
     required: false
-  useVersion:
+  use-version:
     description: 'Version number to publish as. Defaults to reading from the package definition for the platform. (release)'
     required: false
-  preRelease:
+  pre-release:
     description: 'Publish a prerelease. (release)'
     required: false
   build:
@@ -131,7 +133,7 @@ inputs:
   edit:
     description: 'Edit an old comment. (pr-body)'
     required: false
-  del:
+  delete:
     description: 'Delete an old comment. (pr-body)'
     required: false
 
