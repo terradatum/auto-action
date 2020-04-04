@@ -1,0 +1,140 @@
+name: 'auto'
+description: 'Generate releases based on semantic version labels on pull requests, and other pull request automation tools.'
+inputs:
+  commands:
+    description: >
+      Setup Commands
+
+      * info: Determine the environment and check if auto is set up correctly
+
+      Pull Request Interaction Commands
+
+      * label: Get the labels for a pull request. Doesn't do much, but the return value lets you write you own scripts based off of the PR labels!
+      * comment: Comment on a pull request with a markdown message. Each comment has a context, and each context only has one comment.
+      * pr-check: Check that a pull request has a SemVer label
+      * pr-status: Set the status on a PR commit
+      * pr-body: Update the body of a PR with a message. Appends to PR and will not overwrite user content. Each comment has a context, and each context only has one comment.
+
+      Release Commands
+
+      * version: Get the semantic version bump for the given changes. Requires all PRs to have labels for the change type. If a PR does not have a label associated with it, it will default to `patch`.
+      * changelog: Prepend release notes to `CHANGELOG.md`, create one if it doesn't exist, and commit the changes.
+      * release: Auto-generate a github release
+      * shipit: Context aware publishing.
+              1. call from base branch -> latest version released (LATEST)
+              2. call from prerelease branch -> prerelease version released (NEXT)
+              3. call from PR in CI -> canary version released (CANARY)
+              4. call locally when not on base/prerelease branch -> canary version released (CANARY)
+      * latest: Run the full `auto` release pipeline. Force a release to latest and bypass `shipit` safeguards.
+      * canary: Make a canary release of the project. Useful on PRs. If ran locally, `canary` will release a canary version for your current git HEAD. This is ran automatically from "shipit".
+              1. In PR: 1.2.3-canary.123.0 + add version to PR body
+              2. Locally: 1.2.3-canary.1810cfd
+      * next: Make a release for your "prerelease" release line. This is ran automatically from "shipit".
+              1. Creates a prerelease on package management platform
+              2. Creates a "Pre Release" on GitHub releases page.
+
+      Calling the `next` command from a prerelease branch will publish a prerelease, otherwise it will publish to the default prerelease branch.
+    default: shipit
+    required: false
+  repo:
+    description: 'The repo to set status on. Defaults to looking in the package definition for the platform. (global)'
+    required: false
+  owner:
+    description: 'The owner of the GitHub repo. Defaults to reading from the package definition for the platform (global)'
+    required: false
+  githubApi:
+    description: 'The url to GitHub Enterprise API (global)'
+    required: false
+  plugins:
+    description: >
+      Plugins to load auto with. If running the binary distribution, the default plugin is 'git-tag', if running from
+      'node_modules', then it's 'npm'. (global)
+    required: false
+  dryRun:
+    description: 'Report what a command will do but do not actually do anything. (changelog, release, shipit, latest, next, canary)'
+    default: 'false'
+    required: false
+  baseBranch:
+    description: "Branch to treat as the 'master' branch. (changelog, release, shipit, latest)"
+    required: false
+  from:
+    description: 'Tag to start the CHANGELOG notes from. Defaults to latest tag. (version, changelog, release)'
+    required: false
+  onlyGraduateOnReleaseLabel:
+    description: >
+      Make auto publish prerelease versions when merging to master. Only PRs merged with "release" label will generate a
+      "latest" release. Only use this flag if you do not want to maintain a prerelease branch, and instead only want to
+      use master. (shipit)
+    required: false
+  onlyPublishWithReleaseLabel:
+    description: "Only bump version if 'release' label is on pull request. (version, shipit)"
+    required: false
+  name:
+    description: 'The name to use with git. Defaults to package definitions for the platform. (changelog, release)'
+    required: false
+  email:
+    description: 'Git email to commit with. Defaults to package definition for the platform (changelog, release)'
+    required: false
+  noVersionPrefix:
+    description: >
+      Use the version as the tag without the 'v' prefix. WARNING: some plugins might need extra config to use this
+      option (ex: npm). (changelog, release)
+    default: 'false'
+    required: false
+  to:
+    description: 'Git revision (tag, commit sha, ...) to start release notes from. Defaults to latest tag. (changelog)'
+    required: false
+  title:
+    description: 'Override the default title of the CHANGELOG entry.'
+    required: false
+  message:
+    description: >
+      Depending on the command:
+        * changelog: message to commit to the changelog
+        * next: Message used when attaching the prerelease version to the PR
+        * canary: Message to comment on PR with for canary release
+        * pr-body: Message to post to PR Body
+        * comment: Message to post to comment
+    required: false
+  pr:
+    description: >
+      The pull request the command should use. Detects PR number in CI (defaults to last merged PR). (canary, label,
+      pr-status, pr-check, pr-body, comment)
+    required: false
+  useVersion:
+    description: 'Version number to publish as. Defaults to reading from the package definition for the platform. (release)'
+    required: false
+  preRelease:
+    description: 'Publish a prerelease. (release)'
+    required: false
+  build:
+    description: 'Build number to use to create the canary version. Detected in CI env. (canary)'
+    required: false
+  force:
+    description: 'Force a canary release, even if the PR is marked to skip the release (canary)'
+    required: false
+  context:
+    description: 'A string label to differentiate this status from others. (pr-status, pr-check, pr-body, comment)'
+    required: false
+  url:
+    description: 'URL to associate with this status. (pr-status, pr-check)'
+    required: false
+  sha:
+    description: 'Specify a custom git sha. Defaults to the HEAD for a git repo in the current repository. (pr-status)'
+    required: false
+  state:
+    description: "State of the PR. ['pending', 'success', 'error', 'failure']. (pr-status)"
+    required: false
+  description:
+    description: 'A description of the status. (pr-status)'
+    required: false
+  edit:
+    description: 'Edit an old comment. (pr-body)'
+    required: false
+  del:
+    description: 'Delete an old comment. (pr-body)'
+    required: false
+
+runs:
+  using: node12
+  main: dist/index.js

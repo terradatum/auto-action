@@ -1,0 +1,15 @@
+# IDE
+.vscode
+.idea
+.editorconfig
+
+# doc
+.github
+
+# test
+test
+.travis.yml
+
+# node
+yarn.lock
+yarn-error.log

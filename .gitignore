@@ -1,0 +1,27 @@
+# Created by https://www.gitignore.io/api/visualstudiocode
+# Edit at https://www.gitignore.io/?templates=visualstudiocode
+
+### VisualStudioCode ###
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+### VisualStudioCode Patch ###
+# Ignore all local history of files
+.history
+
+# End of https://www.gitignore.io/api/visualstudiocode
+
+# Ignore all IntelliJ IDEA except runConfigurations
+.idea
+*.iml
+!.idea/runConfiguration
+
+# Ignore the .env file - those values should be GitHub secrets
+.env
+
+# Ignore node_modules and lib
+node_modules
+lib

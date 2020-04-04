@@ -1,0 +1,4 @@
+{
+  "onlyPublishWithReleaseLabel": true,
+  "plugins": ["npm", "git-tag"]
+}
