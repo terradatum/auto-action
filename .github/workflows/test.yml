@@ -30,7 +30,9 @@ jobs:
         with:
           dry-run: true
           plugins: |
+            npm
             git-tag
             released
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

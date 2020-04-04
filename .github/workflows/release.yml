@@ -6,7 +6,7 @@ on:
       - master
 
 jobs:
-  build:
+  build-and-release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -19,10 +19,10 @@ jobs:
       - name: auto release
         uses: ./
         with:
-          name: Terradatum Automation
-          email: sysadmin@terradatum.com
           plugins: |
+            npm
             git-tag
             released
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
