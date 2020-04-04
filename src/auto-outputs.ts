@@ -20,5 +20,5 @@ export interface IAutoOutputs {
 export class AutoOutputs implements IAutoOutputs {
   newRelease: boolean = false
   preRelease: boolean = false
-  version: SemVer = new SemVer('0.0.1')
+  version: SemVer = new SemVer('0.0.0')
 }

@@ -27,6 +27,7 @@ for a binary. If it finds neither, it will not run.
 ```yaml
 - uses: terradatum/auto-action@master
   with:
+    # Choose one of the commands below.
     # Setup Commands
     # * info: Determine the environment and check if auto is set up correctly
     # Pull Request Interaction Commands
@@ -63,7 +64,7 @@ for a binary. If it finds neither, it will not run.
     # otherwise it will publish to the default prerelease branch.
     #
     # Default: shipit
-    commands: ''
+    command: ''
 
     # The repo to set status on. Defaults to looking in the package definition for the
     # platform. (global)
@@ -74,7 +75,7 @@ for a binary. If it finds neither, it will not run.
     owner: ''
 
     # The url to GitHub Enterprise API (global)
-    githubApi: ''
+    github-api: ''
 
     # Plugins to load auto with. If running the binary distribution, the default
     # plugin is 'git-tag', if running from 'node_modules', then it's 'npm'. (global)
@@ -83,10 +84,10 @@ for a binary. If it finds neither, it will not run.
     # Report what a command will do but do not actually do anything. (changelog,
     # release, shipit, latest, next, canary)
     # Default: false
-    dryRun: ''
+    dry-run: ''
 
     # Branch to treat as the 'master' branch. (changelog, release, shipit, latest)
-    baseBranch: ''
+    base-branch: ''
 
     # Tag to start the CHANGELOG notes from. Defaults to latest tag. (version,
     # changelog, release)
@@ -96,10 +97,10 @@ for a binary. If it finds neither, it will not run.
     # with "release" label will generate a "latest" release. Only use this flag if you
     # do not want to maintain a prerelease branch, and instead only want to use
     # master. (shipit)
-    onlyGraduateOnReleaseLabel: ''
+    only-graduate-with-release-label: ''
 
     # Only bump version if 'release' label is on pull request. (version, shipit)
-    onlyPublishWithReleaseLabel: ''
+    only-publish-with-release-label: ''
 
     # The name to use with git. Defaults to package definitions for the platform.
     # (changelog, release)
@@ -112,7 +113,7 @@ for a binary. If it finds neither, it will not run.
     # Use the version as the tag without the 'v' prefix. WARNING: some plugins might
     # need extra config to use this option (ex: npm). (changelog, release)
     # Default: false
-    noVersionPrefix: ''
+    no-version-prefix: ''
 
     # Git revision (tag, commit sha, ...) to start release notes from. Defaults to
     # latest tag. (changelog)
@@ -135,10 +136,10 @@ for a binary. If it finds neither, it will not run.
 
     # Version number to publish as. Defaults to reading from the package definition
     # for the platform. (release)
-    useVersion: ''
+    use-version: ''
 
     # Publish a prerelease. (release)
-    preRelease: ''
+    pre-release: ''
 
     # Build number to use to create the canary version. Detected in CI env. (canary)
     build: ''
@@ -167,7 +168,7 @@ for a binary. If it finds neither, it will not run.
     edit: ''
 
     # Delete an old comment. (pr-body)
-    del: ''
+    delete: ''
 ```
 <!-- end usage -->
 
@@ -223,7 +224,11 @@ steps:
     with:
       email: kbaz@gmail.com
       name: Kathy Baz
-      commands: ['version', 'release']
+      command: release
+      plugins: |
+        npm
+        git-tag
+        releases
 ```
 
 ## Changelog

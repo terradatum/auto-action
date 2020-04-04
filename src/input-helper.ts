@@ -41,25 +41,26 @@ export function getInputs(): IAutoSettings {
 
   result.owner = core.getInput('owner') || repoOwner
 
-  result.githubApi = core.getInput('githubApi')
+  result.githubApi = core.getInput('github-api')
 
   result.plugins = core
     .getInput('plugins')
     ?.split('\n')
     ?.filter(x => x !== '')
 
-  result.dryRun = (core.getInput('dryRun') || 'false').toUpperCase() === 'TRUE'
+  result.dryRun = (core.getInput('dry-run') || 'false').toUpperCase() === 'TRUE'
 
-  result.baseBranch = core.getInput('baseBranch')
+  result.baseBranch = core.getInput('base-branch')
 
   result.from = core.getInput('from')
 
   result.onlyGraduateWithReleaseLabel =
-    (core.getInput('onlyGraduateWithReleaseLabel') || 'false').toUpperCase() ===
-    'TRUE'
+    (
+      core.getInput('only-graduate-with-release-label') || 'false'
+    ).toUpperCase() === 'TRUE'
 
   result.onlyPublishWithReleaseLabel =
-    (core.getInput('onlyPublishWithReleaseLabel') || 'true').toUpperCase() ===
+    (core.getInput('only-publish-on-release-label') || 'true').toUpperCase() ===
     'TRUE'
 
   result.name = core.getInput('name')
@@ -67,7 +68,7 @@ export function getInputs(): IAutoSettings {
   result.email = core.getInput('email')
 
   result.noVersionPrefix =
-    (core.getInput('noVersionPrefix') || 'false').toUpperCase() === 'TRUE'
+    (core.getInput('no-version-prefix') || 'false').toUpperCase() === 'TRUE'
 
   result.to = core.getInput('to')
 
@@ -80,10 +81,10 @@ export function getInputs(): IAutoSettings {
     result.pr = 0
   }
 
-  result.useVersion = core.getInput('useVersion')
+  result.useVersion = core.getInput('use-version')
 
   result.preRelease =
-    (core.getInput('preRelease') || 'false').toUpperCase() === 'TRUE'
+    (core.getInput('pre-release') || 'false').toUpperCase() === 'TRUE'
 
   result.build = core.getInput('build')
 
@@ -101,7 +102,7 @@ export function getInputs(): IAutoSettings {
 
   result.edit = (core.getInput('edit') || 'false').toUpperCase() === 'TRUE'
 
-  result.del = (core.getInput('del') || 'false').toUpperCase() === 'TRUE'
+  result.del = (core.getInput('delete') || 'false').toUpperCase() === 'TRUE'
 
   return result
 }

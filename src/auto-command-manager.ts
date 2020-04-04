@@ -4,8 +4,9 @@ import * as io from '@actions/io'
 import * as path from 'path'
 import {SemVer} from 'semver'
 import semver from 'semver/preload'
+import {ExecOptions} from '@actions/exec/lib/interfaces'
 
-export const MinimumAutoVersion = new SemVer('9.25.0')
+export const MinimumAutoVersion = new SemVer('9.25.2')
 
 export interface IAutoCommandManager {
   // Setup commands
@@ -110,8 +111,61 @@ class AutoCommandManager implements IAutoCommandManager {
   private autoEnv = {}
   private autoCommand = ''
   private globalArgs: string[] = []
-  // Private constructor; use createCommandManager(
+  private useNpmAuto: boolean = false
   constructor() {}
+
+  static async createCommandManager(
+    repo: string,
+    owner: string,
+    githubApi: string,
+    plugins: string[]
+  ): Promise<AutoCommandManager> {
+    const result = new AutoCommandManager()
+    await result.initializeCommandManager(repo, owner, githubApi, plugins)
+    return result
+  }
+
+  private static commonChangelogReleaseArgs(
+    args: string[],
+    dryRun: boolean,
+    noVersionPrefix: boolean,
+    name: string,
+    email: string,
+    from: string
+  ) {
+    if (dryRun) {
+      args.push('--dry-run')
+    }
+    if (noVersionPrefix) {
+      args.push('--no-version-prefix')
+    }
+    if (name) {
+      args.push('--name', name)
+    }
+    if (email) {
+      args.push('--email', email)
+    }
+    if (from) {
+      args.push('--from', from)
+    }
+  }
+
+  private static commonPrArgs(
+    args: string[],
+    dryRun: boolean,
+    pr: number,
+    context: string
+  ) {
+    if (dryRun) {
+      args.push('--dry-run')
+    }
+    if (pr > 0) {
+      args.push('--pr', pr.toString())
+    }
+    if (context) {
+      args.push('--context', context)
+    }
+  }
 
   async info(listPlugins: boolean): Promise<string> {
     const args: string[] = [AutoCommand.info]
@@ -355,44 +409,16 @@ class AutoCommandManager implements IAutoCommandManager {
     this.execAuto(args)
   }
 
-  static async createCommandManager(
-    repo: string,
-    owner: string,
-    githubApi: string,
-    plugins: string[]
-  ): Promise<AutoCommandManager> {
-    const result = new AutoCommandManager()
-    await result.initializeCommandManager(repo, owner, githubApi, plugins)
-    return result
-  }
-
   private async execAuto(
     args: string[],
     allowAllExitCodes = false
   ): Promise<AutoOutput> {
     const result = new AutoOutput()
-
-    const env = {}
-    for (const key of Object.keys(process.env)) {
-      env[key] = process.env[key]
-    }
-    for (const key of Object.keys(this.autoEnv)) {
-      env[key] = this.autoEnv[key]
-    }
-
     const stdout: string[] = []
-
-    const options = {
-      cwd: path.resolve(__dirname),
-      env,
-      ignoreReturnCode: allowAllExitCodes,
-      listeners: {
-        stdout: (data: Buffer) => {
-          stdout.push(data.toString())
-        }
-      }
-    }
-    const execArgs = [...this.globalArgs, ...args]
+    const env = this.getEnv()
+    const execArgs = [...args, ...this.globalArgs]
+    this.useNpmAuto && execArgs.unshift('auto')
+    const options = this.getExecOptions(stdout, env, allowAllExitCodes)
 
     result.exitCode = await exec.exec(
       `"${this.autoCommand}"`,
@@ -403,12 +429,58 @@ class AutoCommandManager implements IAutoCommandManager {
     return result
   }
 
+  private getEnv() {
+    const env = {}
+    for (const key of Object.keys(process.env)) {
+      env[key] = process.env[key]
+    }
+    for (const key of Object.keys(this.autoEnv)) {
+      env[key] = this.autoEnv[key]
+    }
+    return env
+  }
+
+  private getExecOptions(
+    stdout: string[],
+    env: {} = {},
+    allowAllExitCodes: boolean = false
+  ): ExecOptions {
+    return {
+      cwd: path.resolve(__dirname),
+      env,
+      ignoreReturnCode: allowAllExitCodes,
+      listeners: {
+        stdout: (data: Buffer) => {
+          stdout.push(data.toString())
+        }
+      }
+    }
+  }
+
   private async initializeCommandManager(
     repo: string,
     owner: string,
     githubApi: string,
     plugins: string[]
   ): Promise<void> {
+    try {
+      this.autoCommand = await io.which('npx', true)
+      const stdout: string[] = []
+      const env = this.getEnv()
+      const options = this.getExecOptions(stdout, env)
+      const args = ['ci', '--only=prod']
+      await exec.exec('"npm"', args, options)
+      core.info(stdout?.join(''))
+      this.useNpmAuto = true
+    } catch (npxError) {
+      try {
+        this.autoCommand = await io.which('auto', true)
+      } catch (autoError) {
+        throw new Error(
+          'Unable to locate executable file for either npx or auto'
+        )
+      }
+    }
     if (repo) {
       this.globalArgs.push('--repo', repo)
     }
@@ -419,19 +491,7 @@ class AutoCommandManager implements IAutoCommandManager {
       this.globalArgs.push('--githubApi', githubApi)
     }
     if (plugins && plugins.length > 0) {
-      this.globalArgs.push('--plugins', `[${plugins.join(' ')}]`)
-    }
-    try {
-      this.autoCommand = await io.which('npx', true)
-      this.autoCommand = `${this.autoCommand} auto`
-    } catch (npxError) {
-      try {
-        this.autoCommand = await io.which('auto', true)
-      } catch (autoError) {
-        throw new Error(
-          'Unable to locate executable file for either npx or auto'
-        )
-      }
+      this.globalArgs.push('--plugins', ...plugins)
     }
     core.debug('Getting auto version')
     let autoVersion: SemVer
@@ -449,48 +509,6 @@ class AutoCommandManager implements IAutoCommandManager {
           )
         }
       }
-    }
-  }
-
-  private static commonChangelogReleaseArgs(
-    args: string[],
-    dryRun: boolean,
-    noVersionPrefix: boolean,
-    name: string,
-    email: string,
-    from: string
-  ) {
-    if (dryRun) {
-      args.push('--dry-run')
-    }
-    if (noVersionPrefix) {
-      args.push('--no-version-prefix')
-    }
-    if (name) {
-      args.push('--name', name)
-    }
-    if (email) {
-      args.push('--email', email)
-    }
-    if (from) {
-      args.push('--from', from)
-    }
-  }
-
-  private static commonPrArgs(
-    args: string[],
-    dryRun: boolean,
-    pr: number,
-    context: string
-  ) {
-    if (dryRun) {
-      args.push('--dry-run')
-    }
-    if (pr > 0) {
-      args.push('--pr', pr.toString())
-    }
-    if (context) {
-      args.push('--context', context)
     }
   }
 }

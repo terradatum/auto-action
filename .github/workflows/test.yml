@@ -1,4 +1,4 @@
-name: Check Pull Request
+name: Build and Test
 
 on:
   pull_request:
@@ -31,7 +31,7 @@ jobs:
       - name: auto release
         uses: ./
         with:
-          dry_run: true
+          dry-run: true
           plugins: |
             npm
             git-tag
