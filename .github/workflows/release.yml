@@ -1,4 +1,4 @@
-name: Build and Test
+name: Build and Release
 
 on:
   push:
@@ -19,6 +19,8 @@ jobs:
       - name: auto release
         uses: ./
         with:
+          name: Terradatum Automation
+          email: sysadmin@terradatum.com
           plugins: |
             git-tag
             released
