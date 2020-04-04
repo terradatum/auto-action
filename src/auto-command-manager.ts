@@ -417,9 +417,7 @@ class AutoCommandManager implements IAutoCommandManager {
     let execArgs: string[]
     const stdout: string[] = []
     const env = this.getEnv()
-    const actionsRunnerDebug =
-      (env['ACTIONS_RUNNER_DEBUG'] || 'false').toUpperCase() === 'TRUE'
-    if (actionsRunnerDebug) {
+    if (core.isDebug()) {
       execArgs = ['-vv', ...args, ...this.globalArgs]
     } else {
       execArgs = [...args, ...this.globalArgs]
