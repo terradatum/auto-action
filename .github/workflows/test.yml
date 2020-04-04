@@ -33,7 +33,6 @@ jobs:
         with:
           dry-run: true
           plugins: |
-            npm
             git-tag
             released
         env:
