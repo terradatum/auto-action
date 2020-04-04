@@ -414,9 +414,16 @@ class AutoCommandManager implements IAutoCommandManager {
     allowAllExitCodes = false
   ): Promise<AutoOutput> {
     const result = new AutoOutput()
+    let execArgs: string[]
     const stdout: string[] = []
     const env = this.getEnv()
-    const execArgs = [...args, ...this.globalArgs]
+    const actionsRunnerDebug =
+      (env['ACTIONS_RUNNER_DEBUG'] || 'false').toUpperCase() === 'TRUE'
+    if (actionsRunnerDebug) {
+      execArgs = ['-vv', ...args, ...this.globalArgs]
+    } else {
+      execArgs = [...args, ...this.globalArgs]
+    }
     this.useNpmAuto && execArgs.unshift('auto')
     const options = this.getExecOptions(stdout, env, allowAllExitCodes)
 

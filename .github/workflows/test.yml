@@ -35,5 +35,6 @@ jobs:
           plugins: |
             npm
             git-tag
+            released
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

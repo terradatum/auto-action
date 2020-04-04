@@ -28069,9 +28069,16 @@ class AutoCommandManager {
     execAuto(args, allowAllExitCodes = false) {
         return __awaiter(this, void 0, void 0, function* () {
             const result = new AutoOutput();
+            let execArgs;
             const stdout = [];
             const env = this.getEnv();
-            const execArgs = [...args, ...this.globalArgs];
+            const actionsRunnerDebug = (env['ACTIONS_RUNNER_DEBUG'] || 'false').toUpperCase() === 'TRUE';
+            if (actionsRunnerDebug) {
+                execArgs = ['-vv', ...args, ...this.globalArgs];
+            }
+            else {
+                execArgs = [...args, ...this.globalArgs];
+            }
             this.useNpmAuto && execArgs.unshift('auto');
             const options = this.getExecOptions(stdout, env, allowAllExitCodes);
             result.exitCode = yield exec.exec(`"${this.autoCommand}"`, execArgs, options);
