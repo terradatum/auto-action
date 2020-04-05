@@ -1,5 +1,5 @@
 {
-  "name": "auto-action",
+  "name": "@terradatum/auto-action",
   "version": "1.0.0",
   "main": "lib/main.js",
   "scripts": {
