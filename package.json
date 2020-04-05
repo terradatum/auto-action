@@ -1,6 +1,6 @@
 {
   "name": "@terradatum/auto-action",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "lib/main.js",
   "scripts": {
     "build": "tsc && ncc build && node lib/misc/generate-docs.js",
