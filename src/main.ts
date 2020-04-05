@@ -1,16 +1,17 @@
 import * as core from '@actions/core'
 import * as inputHelper from './input-helper'
-import * as outputHelper from './output-helper'
 import * as autoCommandManager from './auto-command-manager'
 import {AutoCommand} from './auto-command-manager'
-import {AutoOutputs} from './auto-outputs'
-import {SemVer} from 'semver'
 
 async function run(): Promise<void> {
   const settings = inputHelper.getInputs()
 
   try {
-    core.debug(`Running auto with the following action settings:\n${settings}`)
+    core.debug(
+      `Running auto with the following action settings:\n${JSON.stringify(
+        settings
+      )}`
+    )
     const commandManager = await autoCommandManager.createCommandManager(
       settings.repo,
       settings.owner,
@@ -18,21 +19,21 @@ async function run(): Promise<void> {
       settings.plugins
     )
 
-    let stdout = await commandManager.version(
+    // TODO: Change the way stdout/stderr and exitCodes are handled
+    const version = await commandManager.version(
       settings.onlyPublishWithReleaseLabel,
       settings.from
     )
-    // NOTE: The version command doesn't return a semver - it returns the string indication the KIND of semver bump
+
+    // NOTE: The version command doesn't return a semver - it returns the string indication of the KIND of semver bump
+    //       E.g. major, minor, patch, etc.
     // TODO: Figure out what the semver will actually be
-    /*let autoOutputs = new AutoOutputs()
-    autoOutputs.version = new SemVer(stdout)
-    core.info(String(autoOutputs))*/
-    core.startGroup('Starting the run of auto')
+
     switch (settings.command) {
       // Setup Commands
       case AutoCommand.info: {
-        stdout = await commandManager.info(settings.listPlugins)
-        core.info(stdout)
+        // TODO: Change the way stdout/stderr and exitCodes are handled
+        const info = await commandManager.info(settings.listPlugins)
         break
       }
       // Publishing
@@ -91,7 +92,8 @@ async function run(): Promise<void> {
       }
       // PR Interaction
       case AutoCommand.label: {
-        await commandManager.label(settings.pr)
+        // TODO: Change the way stdout/stderr and exitCodes are handled
+        const label = await commandManager.label(settings.pr)
         break
       }
       case AutoCommand.prStatus: {
@@ -136,7 +138,6 @@ async function run(): Promise<void> {
         break
       }
     }
-    core.endGroup()
     //outputHelper.setOutputs(autoOutputs)
   } catch (error) {
     core.setFailed(error.message)

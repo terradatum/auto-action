@@ -109,9 +109,10 @@ export async function createCommandManager(
 
 class AutoCommandManager implements IAutoCommandManager {
   private autoEnv = {}
-  private autoCommand = ''
+  private execCommand = ''
   private globalArgs: string[] = []
   private useNpmAuto: boolean = false
+
   constructor() {}
 
   static async createCommandManager(
@@ -172,8 +173,16 @@ class AutoCommandManager implements IAutoCommandManager {
     if (listPlugins) {
       args.push('--list-plugins')
     }
-    const output = await this.execAuto(args)
-    return output.stdout
+    const autoExecOutput = await this.execAuto(args)
+    if (autoExecOutput.exitCode === 0) {
+      core.info(autoExecOutput.stdout)
+      core.debug(autoExecOutput.stderr)
+    } else {
+      core.error(autoExecOutput.stdout)
+      core.error(autoExecOutput.stderr)
+      throw new Error('auto did not complete successfully.')
+    }
+    return autoExecOutput.stdout
   }
 
   async version(
@@ -187,8 +196,16 @@ class AutoCommandManager implements IAutoCommandManager {
     if (from) {
       args.push('--from', from)
     }
-    const output = await this.execAuto(args)
-    return output.stdout
+    const autoExecOutput = await this.execAuto(args)
+    if (autoExecOutput.exitCode === 0) {
+      core.info(autoExecOutput.stdout)
+      core.debug(autoExecOutput.stderr)
+    } else {
+      core.error(autoExecOutput.stdout)
+      core.error(autoExecOutput.stderr)
+      throw new Error('auto did not complete successfully.')
+    }
+    return autoExecOutput.stdout
   }
 
   async changelog(
@@ -317,8 +334,16 @@ class AutoCommandManager implements IAutoCommandManager {
     if (pr > 0) {
       args.push('--pr', pr.toString())
     }
-    const output = await this.execAuto(args)
-    return output.stdout
+    const autoExecOutput = await this.execAuto(args)
+    if (autoExecOutput.exitCode === 0) {
+      core.info(autoExecOutput.stdout)
+      core.debug(autoExecOutput.stderr)
+    } else {
+      core.error(autoExecOutput.stdout)
+      core.error(autoExecOutput.stderr)
+      throw new Error('auto did not complete successfully.')
+    }
+    return autoExecOutput.stdout
   }
 
   async latest(dryRun: boolean, baseBranch: string): Promise<void> {
@@ -412,10 +437,11 @@ class AutoCommandManager implements IAutoCommandManager {
   private async execAuto(
     args: string[],
     allowAllExitCodes = false
-  ): Promise<AutoOutput> {
-    const result = new AutoOutput()
+  ): Promise<AutoExecOutput> {
+    const result = new AutoExecOutput()
     let execArgs: string[]
     const stdout: string[] = []
+    const stderr: string[] = []
     const env = this.getEnv()
     if (core.isDebug()) {
       execArgs = ['-vv', ...args, ...this.globalArgs]
@@ -423,14 +449,15 @@ class AutoCommandManager implements IAutoCommandManager {
       execArgs = [...args, ...this.globalArgs]
     }
     this.useNpmAuto && execArgs.unshift('auto')
-    const options = this.getExecOptions(stdout, env, allowAllExitCodes)
+    const options = this.getExecOptions(stdout, stderr, env, allowAllExitCodes)
 
     result.exitCode = await exec.exec(
-      `"${this.autoCommand}"`,
+      `"${this.execCommand}"`,
       execArgs,
       options
     )
     result.stdout = stdout.join('')
+    result.stderr = stderr.join('')
     return result
   }
 
@@ -447,6 +474,7 @@ class AutoCommandManager implements IAutoCommandManager {
 
   private getExecOptions(
     stdout: string[],
+    stderr: string[],
     env: {} = {},
     allowAllExitCodes: boolean = false
   ): ExecOptions {
@@ -457,6 +485,9 @@ class AutoCommandManager implements IAutoCommandManager {
       listeners: {
         stdout: (data: Buffer) => {
           stdout.push(data.toString())
+        },
+        stderr: (data: Buffer) => {
+          stderr.push(data.toString())
         }
       }
     }
@@ -469,17 +500,19 @@ class AutoCommandManager implements IAutoCommandManager {
     plugins: string[]
   ): Promise<void> {
     try {
-      this.autoCommand = await io.which('npx', true)
+      this.execCommand = await io.which('npx', true)
       const stdout: string[] = []
-      const env = this.getEnv()
-      const options = this.getExecOptions(stdout, env)
-      const args = ['ci', '--only=prod']
-      await exec.exec('"npm"', args, options)
+      const stderr: string[] = []
+      await exec.exec(
+        '"npm"',
+        ['ci', '--only=prod'],
+        this.getExecOptions(stdout, stderr, this.getEnv())
+      )
       core.info(stdout?.join(''))
       this.useNpmAuto = true
     } catch (npxError) {
       try {
-        this.autoCommand = await io.which('auto', true)
+        this.execCommand = await io.which('auto', true)
       } catch (autoError) {
         throw new Error(
           'Unable to locate executable file for either npx or auto'
@@ -510,7 +543,7 @@ class AutoCommandManager implements IAutoCommandManager {
         autoVersion = new SemVer(match[0])
         if (autoVersion < MinimumAutoVersion) {
           throw new Error(
-            `Minimum required auto version is ${MinimumAutoVersion}. Your auto ('${this.autoCommand}') is ${autoVersion}`
+            `Minimum required auto version is ${MinimumAutoVersion}. Your auto ('${this.execCommand}') is ${autoVersion}`
           )
         }
       }
@@ -545,7 +578,8 @@ export enum PrState {
   failure = 'failure'
 }
 
-class AutoOutput {
+export class AutoExecOutput {
   stdout = ''
+  stderr = ''
   exitCode = 0
 }
