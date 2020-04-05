@@ -4843,11 +4843,11 @@ function run() {
                     break;
                 }
                 case auto_command_manager_1.AutoCommand.shipit: {
-                    yield commandManager.shipit(settings.dryRun, settings.baseBranch, settings.onlyGraduateWithReleaseLabel);
+                    yield commandManager.shipit(settings.dryRun, settings.noVersionPrefix, settings.name, settings.email, settings.useVersion, settings.title, settings.message, settings.baseBranch, settings.preRelease, settings.onlyPublishWithReleaseLabel, settings.onlyGraduateWithReleaseLabel);
                     break;
                 }
                 case auto_command_manager_1.AutoCommand.latest: {
-                    yield commandManager.latest(settings.dryRun, settings.baseBranch);
+                    yield commandManager.latest(settings.dryRun, settings.noVersionPrefix, settings.name, settings.email, settings.useVersion, settings.title, settings.message, settings.baseBranch, settings.preRelease, settings.onlyPublishWithReleaseLabel);
                     break;
                 }
                 case auto_command_manager_1.AutoCommand.next: {
@@ -27831,7 +27831,7 @@ const exec = __importStar(__webpack_require__(986));
 const io = __importStar(__webpack_require__(1));
 const semver_1 = __webpack_require__(876);
 const preload_1 = __importDefault(__webpack_require__(381));
-exports.MinimumAutoVersion = new semver_1.SemVer('9.25.2');
+exports.MinimumAutoVersion = new semver_1.SemVer('9.26.0');
 function createCommandManager(workingDirectory, repo, owner, githubApi, plugins) {
     return __awaiter(this, void 0, void 0, function* () {
         return yield AutoCommandManager.createCommandManager(workingDirectory, repo, owner, githubApi, plugins);
@@ -27853,7 +27853,7 @@ class AutoCommandManager {
             return result;
         });
     }
-    static commonChangelogReleaseArgs(args, dryRun, noVersionPrefix, name, email, from) {
+    static commonChangelogReleaseArgs(args, dryRun, noVersionPrefix, name, email, from, baseBranch = '') {
         if (dryRun) {
             args.push('--dry-run');
         }
@@ -27868,6 +27868,9 @@ class AutoCommandManager {
         }
         if (from) {
             args.push('--from', from);
+        }
+        if (baseBranch) {
+            args.push('--base-branch', baseBranch);
         }
     }
     static commonPrArgs(args, dryRun, pr, context) {
@@ -27916,7 +27919,7 @@ class AutoCommandManager {
     changelog(dryRun, noVersionPrefix, name, email, from, to, title, message, baseBranch) {
         return __awaiter(this, void 0, void 0, function* () {
             const args = [AutoCommand.changelog];
-            AutoCommandManager.commonChangelogReleaseArgs(args, dryRun, noVersionPrefix, name, email, from);
+            AutoCommandManager.commonChangelogReleaseArgs(args, dryRun, noVersionPrefix, name, email, from, baseBranch);
             if (to) {
                 args.push('--to', to);
             }
@@ -27926,21 +27929,15 @@ class AutoCommandManager {
             if (message) {
                 args.push('--message', message);
             }
-            if (baseBranch) {
-                args.push('--base-branch', baseBranch);
-            }
             yield this.execAuto(args);
         });
     }
     release(dryRun, noVersionPrefix, name, email, from, useVersion, baseBranch, preRelease) {
         return __awaiter(this, void 0, void 0, function* () {
             const args = [AutoCommand.release];
-            AutoCommandManager.commonChangelogReleaseArgs(args, dryRun, noVersionPrefix, name, email, from);
+            AutoCommandManager.commonChangelogReleaseArgs(args, dryRun, noVersionPrefix, name, email, from, baseBranch);
             if (useVersion) {
                 args.push('--use-version', useVersion);
-            }
-            if (baseBranch) {
-                args.push('--base-branch', baseBranch);
             }
             if (preRelease) {
                 args.push('--pre-release');
@@ -27948,20 +27945,44 @@ class AutoCommandManager {
             yield this.execAuto(args);
         });
     }
-    shipit(dryRun, baseBranch, onlyGraduateWithReleaseLabel) {
+    shipit(dryRun, noVersionPrefix, name, email, useVersion, title, message, baseBranch, preRelease, onlyPublishWithReleaseLabel, onlyGraduateWithReleaseLabel) {
         return __awaiter(this, void 0, void 0, function* () {
             const args = [AutoCommand.shipit];
-            if (dryRun) {
-                args.push('--dry-run');
-            }
-            if (baseBranch) {
-                args.push('--base-branch', baseBranch);
-            }
+            this.commonShipitLatestArgs(args, dryRun, noVersionPrefix, name, email, useVersion, title, message, baseBranch, onlyPublishWithReleaseLabel);
             if (onlyGraduateWithReleaseLabel) {
                 args.push('--only-graduate-with-release-label');
             }
             yield this.execAuto(args);
         });
+    }
+    commonShipitLatestArgs(args, dryRun, noVersionPrefix, name, email, useVersion, title, message, baseBranch, onlyPublishWithReleaseLabel) {
+        if (dryRun) {
+            args.push('--dry-run');
+        }
+        if (noVersionPrefix) {
+            args.push('--no-version-prefix');
+        }
+        if (name) {
+            args.push('--name', name);
+        }
+        if (email) {
+            args.push('--email', email);
+        }
+        if (useVersion) {
+            args.push('--use-version', useVersion);
+        }
+        if (title) {
+            args.push('--title', title);
+        }
+        if (message) {
+            args.push('--message', message);
+        }
+        if (baseBranch) {
+            args.push('--base-branch', baseBranch);
+        }
+        if (onlyPublishWithReleaseLabel) {
+            args.push('--only-publish-with-release-label');
+        }
     }
     next(dryRun, message) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -28015,15 +28036,10 @@ class AutoCommandManager {
             return autoExecOutput.stdout;
         });
     }
-    latest(dryRun, baseBranch) {
+    latest(dryRun, noVersionPrefix, name, email, useVersion, title, message, baseBranch, preRelease, onlyPublishWithReleaseLabel) {
         return __awaiter(this, void 0, void 0, function* () {
             const args = [AutoCommand.latest];
-            if (dryRun) {
-                args.push('--dry-run');
-            }
-            if (baseBranch) {
-                args.push('--base-branch', baseBranch);
-            }
+            this.commonShipitLatestArgs(args, dryRun, noVersionPrefix, name, email, useVersion, title, message, baseBranch, onlyPublishWithReleaseLabel);
             yield this.execAuto(args);
         });
     }
