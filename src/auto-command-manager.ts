@@ -1,12 +1,11 @@
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import * as io from '@actions/io'
-import * as path from 'path'
 import {SemVer} from 'semver'
 import semver from 'semver/preload'
 import {ExecOptions} from '@actions/exec/lib/interfaces'
 
-export const MinimumAutoVersion = new SemVer('9.25.2')
+export const MinimumAutoVersion = new SemVer('9.26.0')
 
 export interface IAutoCommandManager {
   // Setup commands
@@ -40,11 +39,30 @@ export interface IAutoCommandManager {
 
   shipit(
     dryRun: boolean,
+    noVersionPrefix: boolean,
+    name: string,
+    email: string,
+    useVersion: string,
+    title: string,
+    message: string,
     baseBranch: string,
+    preRelease: boolean,
+    onlyPublishWithReleaseLabel: boolean,
     onlyGraduateWithReleaseLabel: boolean
   ): Promise<void>
 
-  latest(dryRun: boolean, baseBranch: string): Promise<void>
+  latest(
+    dryRun: boolean,
+    noVersionPrefix: boolean,
+    name: string,
+    email: string,
+    useVersion: string,
+    title: string,
+    message: string,
+    baseBranch: string,
+    preRelease: boolean,
+    onlyPublishWithReleaseLabel: boolean
+  ): Promise<void>
 
   next(dryRun: boolean, message: string): Promise<void>
 
@@ -115,6 +133,7 @@ class AutoCommandManager implements IAutoCommandManager {
   private autoCommand: string = ''
   private globalArgs: string[] = []
   private useNpmAuto: boolean = false
+
   constructor() {}
 
   static async createCommandManager(
@@ -141,7 +160,8 @@ class AutoCommandManager implements IAutoCommandManager {
     noVersionPrefix: boolean,
     name: string,
     email: string,
-    from: string
+    from: string,
+    baseBranch: string = ''
   ) {
     if (dryRun) {
       args.push('--dry-run')
@@ -157,6 +177,9 @@ class AutoCommandManager implements IAutoCommandManager {
     }
     if (from) {
       args.push('--from', from)
+    }
+    if (baseBranch) {
+      args.push('--base-branch', baseBranch)
     }
   }
 
@@ -227,7 +250,8 @@ class AutoCommandManager implements IAutoCommandManager {
       noVersionPrefix,
       name,
       email,
-      from
+      from,
+      baseBranch
     )
     if (to) {
       args.push('--to', to)
@@ -237,9 +261,6 @@ class AutoCommandManager implements IAutoCommandManager {
     }
     if (message) {
       args.push('--message', message)
-    }
-    if (baseBranch) {
-      args.push('--base-branch', baseBranch)
     }
     await this.execAuto(args)
   }
@@ -261,13 +282,11 @@ class AutoCommandManager implements IAutoCommandManager {
       noVersionPrefix,
       name,
       email,
-      from
+      from,
+      baseBranch
     )
     if (useVersion) {
       args.push('--use-version', useVersion)
-    }
-    if (baseBranch) {
-      args.push('--base-branch', baseBranch)
     }
     if (preRelease) {
       args.push('--pre-release')
@@ -277,20 +296,75 @@ class AutoCommandManager implements IAutoCommandManager {
 
   async shipit(
     dryRun: boolean,
+    noVersionPrefix: boolean,
+    name: string,
+    email: string,
+    useVersion: string,
+    title: string,
+    message: string,
     baseBranch: string,
+    preRelease: boolean,
+    onlyPublishWithReleaseLabel: boolean,
     onlyGraduateWithReleaseLabel: boolean
   ): Promise<void> {
     const args: string[] = [AutoCommand.shipit]
-    if (dryRun) {
-      args.push('--dry-run')
-    }
-    if (baseBranch) {
-      args.push('--base-branch', baseBranch)
-    }
+    this.commonShipitLatestArgs(
+      args,
+      dryRun,
+      noVersionPrefix,
+      name,
+      email,
+      useVersion,
+      title,
+      message,
+      baseBranch,
+      onlyPublishWithReleaseLabel
+    )
     if (onlyGraduateWithReleaseLabel) {
       args.push('--only-graduate-with-release-label')
     }
     await this.execAuto(args)
+  }
+
+  private commonShipitLatestArgs(
+    args: string[],
+    dryRun: boolean,
+    noVersionPrefix: boolean,
+    name: string,
+    email: string,
+    useVersion: string,
+    title: string,
+    message: string,
+    baseBranch: string,
+    onlyPublishWithReleaseLabel: boolean
+  ) {
+    if (dryRun) {
+      args.push('--dry-run')
+    }
+    if (noVersionPrefix) {
+      args.push('--no-version-prefix')
+    }
+    if (name) {
+      args.push('--name', name)
+    }
+    if (email) {
+      args.push('--email', email)
+    }
+    if (useVersion) {
+      args.push('--use-version', useVersion)
+    }
+    if (title) {
+      args.push('--title', title)
+    }
+    if (message) {
+      args.push('--message', message)
+    }
+    if (baseBranch) {
+      args.push('--base-branch', baseBranch)
+    }
+    if (onlyPublishWithReleaseLabel) {
+      args.push('--only-publish-with-release-label')
+    }
   }
 
   async next(dryRun: boolean, message: string): Promise<void> {
@@ -347,14 +421,31 @@ class AutoCommandManager implements IAutoCommandManager {
     return autoExecOutput.stdout
   }
 
-  async latest(dryRun: boolean, baseBranch: string): Promise<void> {
+  async latest(
+    dryRun: boolean,
+    noVersionPrefix: boolean,
+    name: string,
+    email: string,
+    useVersion: string,
+    title: string,
+    message: string,
+    baseBranch: string,
+    preRelease: boolean,
+    onlyPublishWithReleaseLabel: boolean
+  ): Promise<void> {
     const args: string[] = [AutoCommand.latest]
-    if (dryRun) {
-      args.push('--dry-run')
-    }
-    if (baseBranch) {
-      args.push('--base-branch', baseBranch)
-    }
+    this.commonShipitLatestArgs(
+      args,
+      dryRun,
+      noVersionPrefix,
+      name,
+      email,
+      useVersion,
+      title,
+      message,
+      baseBranch,
+      onlyPublishWithReleaseLabel
+    )
     await this.execAuto(args)
   }
 

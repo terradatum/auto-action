@@ -68,13 +68,32 @@ async function run(): Promise<void> {
       case AutoCommand.shipit: {
         await commandManager.shipit(
           settings.dryRun,
+          settings.noVersionPrefix,
+          settings.name,
+          settings.email,
+          settings.useVersion,
+          settings.title,
+          settings.message,
           settings.baseBranch,
+          settings.preRelease,
+          settings.onlyPublishWithReleaseLabel,
           settings.onlyGraduateWithReleaseLabel
         )
         break
       }
       case AutoCommand.latest: {
-        await commandManager.latest(settings.dryRun, settings.baseBranch)
+        await commandManager.latest(
+          settings.dryRun,
+          settings.noVersionPrefix,
+          settings.name,
+          settings.email,
+          settings.useVersion,
+          settings.title,
+          settings.message,
+          settings.baseBranch,
+          settings.preRelease,
+          settings.onlyPublishWithReleaseLabel
+        )
         break
       }
       case AutoCommand.next: {
