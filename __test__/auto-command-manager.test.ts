@@ -8,20 +8,12 @@ import * as inputHelper from '../src/input-helper'
 import * as autoCommandManager from '../src/auto-command-manager'
 import * as fsHelper from '../src/fs-helper'
 import * as exec from '@actions/exec'
-import * as stream from 'stream'
-import {ExecOptions} from '@actions/exec/lib/interfaces'
 
 const originalGitHubWorkspace = process.env['GITHUB_WORKSPACE']
 const gitHubWorkspace = path.resolve('/checkout-tests/workspace')
 
-// Shallow clone original @actions/github context
-let originalContext = {...github.context}
-
 jest.mock('@actions/exec')
 jest.mock('@actions/io')
-
-let outstream: stream.Writable
-let errstream: stream.Writable
 
 describe('auto-command-manager tests', () => {
   beforeAll(() => {
@@ -104,6 +96,9 @@ describe('auto-command-manager tests', () => {
     })
 
     const settings: IAutoSettings = inputHelper.getInputs()
+    const expectedArgs = core.isDebug()
+      ? ['-vv', '--version', '--repo', 'some-repo', '--owner', 'some-owner']
+      : ['--version', '--repo', 'some-repo', '--owner', 'some-owner']
     expect.assertions(3)
     await expect(
       autoCommandManager.createCommandManager(
@@ -118,7 +113,7 @@ describe('auto-command-manager tests', () => {
     expect(execMock).toHaveBeenCalledTimes(1)
     expect(execMock).toHaveBeenCalledWith(
       '"auto"',
-      ['--version', '--repo', 'some-repo', '--owner', 'some-owner'],
+      expectedArgs,
       expect.anything()
     )
   })
@@ -219,6 +214,7 @@ describe('auto-command-manager tests', () => {
   */
 })
 
+/*
 function getExecOptions(): ExecOptions {
   return {
     cwd: __dirname,
@@ -230,3 +226,4 @@ function getExecOptions(): ExecOptions {
     errStream: errstream
   }
 }
+*/
