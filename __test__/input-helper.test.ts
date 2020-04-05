@@ -100,6 +100,7 @@ describe('input-helper tests', () => {
     expect(settings.description).toBeFalsy()
     expect(settings.edit).toBe(false)
     expect(settings.del).toBe(false)
+    expect(settings.workingDirectory).toBe(gitHubWorkspace)
   })
 
   it('requires qualified repo', () => {

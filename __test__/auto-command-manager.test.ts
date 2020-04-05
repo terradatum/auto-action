@@ -8,6 +8,7 @@ import * as inputHelper from '../src/input-helper'
 import * as autoCommandManager from '../src/auto-command-manager'
 import * as fsHelper from '../src/fs-helper'
 import * as exec from '@actions/exec'
+import set = Reflect.set
 
 const originalGitHubWorkspace = process.env['GITHUB_WORKSPACE']
 const gitHubWorkspace = path.resolve('/checkout-tests/workspace')
@@ -67,6 +68,7 @@ describe('auto-command-manager tests', () => {
     expect.assertions(1)
     await expect(
       autoCommandManager.createCommandManager(
+        settings.workingDirectory,
         settings.repo,
         settings.owner,
         settings.githubApi,
@@ -102,6 +104,7 @@ describe('auto-command-manager tests', () => {
     expect.assertions(3)
     await expect(
       autoCommandManager.createCommandManager(
+        settings.workingDirectory,
         settings.repo,
         settings.owner,
         settings.githubApi,

@@ -149,4 +149,9 @@ export interface IAutoSettings {
    * List installed plugins
    */
   listPlugins: boolean
+
+  /**
+   * Working directory
+   */
+  workingDirectory: string
 }
