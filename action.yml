@@ -136,6 +136,10 @@ inputs:
   delete:
     description: 'Delete an old comment. (pr-body)'
     required: false
+  workingDirectory:
+    description: 'The working directory'
+    default: '${{ env.GITHUB_WORKSPACE }}'
+    required: false
 
 runs:
   using: node12

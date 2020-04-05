@@ -17,6 +17,8 @@ export function getInputs(): IAutoSettings {
   core.debug(`GITHUB_WORKSPACE = '${githubWorkspacePath}'`)
   fsHelper.directoryExistsSync(githubWorkspacePath, true)
 
+  result.workingDirectory = githubWorkspacePath
+
   // Qualified repository
   const qualifiedRepository =
     core.getInput('repo') ||

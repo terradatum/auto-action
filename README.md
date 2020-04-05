@@ -169,6 +169,10 @@ for a binary. If it finds neither, it will not run.
 
     # Delete an old comment. (pr-body)
     delete: ''
+
+    # The working directory
+    # Default: ${{ env.GITHUB_WORKSPACE }}
+    workingDirectory: ''
 ```
 <!-- end usage -->
 

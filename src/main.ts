@@ -13,6 +13,7 @@ async function run(): Promise<void> {
       )}`
     )
     const commandManager = await autoCommandManager.createCommandManager(
+      settings.workingDirectory,
       settings.repo,
       settings.owner,
       settings.githubApi,

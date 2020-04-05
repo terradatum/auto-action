@@ -4820,7 +4820,7 @@ function run() {
         const settings = inputHelper.getInputs();
         try {
             core.debug(`Running auto with the following action settings:\n${JSON.stringify(settings)}`);
-            const commandManager = yield autoCommandManager.createCommandManager(settings.repo, settings.owner, settings.githubApi, settings.plugins);
+            const commandManager = yield autoCommandManager.createCommandManager(settings.workingDirectory, settings.repo, settings.owner, settings.githubApi, settings.plugins);
             // TODO: Change the way stdout/stderr and exitCodes are handled
             const version = yield commandManager.version(settings.onlyPublishWithReleaseLabel, settings.from);
             // NOTE: The version command doesn't return a semver - it returns the string indication of the KIND of semver bump
@@ -12121,6 +12121,7 @@ function getInputs() {
     githubWorkspacePath = path.resolve(githubWorkspacePath);
     core.debug(`GITHUB_WORKSPACE = '${githubWorkspacePath}'`);
     fsHelper.directoryExistsSync(githubWorkspacePath, true);
+    result.workingDirectory = githubWorkspacePath;
     // Qualified repository
     const qualifiedRepository = core.getInput('repo') ||
         `${github.context.repo.owner}/${github.context.repo.repo}`;
@@ -27828,27 +27829,27 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(__webpack_require__(470));
 const exec = __importStar(__webpack_require__(986));
 const io = __importStar(__webpack_require__(1));
-const path = __importStar(__webpack_require__(622));
 const semver_1 = __webpack_require__(876);
 const preload_1 = __importDefault(__webpack_require__(381));
 exports.MinimumAutoVersion = new semver_1.SemVer('9.25.2');
-function createCommandManager(repo, owner, githubApi, plugins) {
+function createCommandManager(workingDirectory, repo, owner, githubApi, plugins) {
     return __awaiter(this, void 0, void 0, function* () {
-        return yield AutoCommandManager.createCommandManager(repo, owner, githubApi, plugins);
+        return yield AutoCommandManager.createCommandManager(workingDirectory, repo, owner, githubApi, plugins);
     });
 }
 exports.createCommandManager = createCommandManager;
 class AutoCommandManager {
     constructor() {
+        this.workingDirectory = '';
         this.autoEnv = {};
-        this.execCommand = '';
+        this.autoCommand = '';
         this.globalArgs = [];
         this.useNpmAuto = false;
     }
-    static createCommandManager(repo, owner, githubApi, plugins) {
+    static createCommandManager(workingDirectory, repo, owner, githubApi, plugins) {
         return __awaiter(this, void 0, void 0, function* () {
             const result = new AutoCommandManager();
-            yield result.initializeCommandManager(repo, owner, githubApi, plugins);
+            yield result.initializeCommandManager(workingDirectory, repo, owner, githubApi, plugins);
             return result;
         });
     }
@@ -27886,17 +27887,8 @@ class AutoCommandManager {
             if (listPlugins) {
                 args.push('--list-plugins');
             }
-            const autoExecOutput = yield this.execAuto(args);
-            if (autoExecOutput.exitCode === 0) {
-                core.info(autoExecOutput.stdout);
-                core.debug(autoExecOutput.stderr);
-            }
-            else {
-                core.error(autoExecOutput.stdout);
-                core.error(autoExecOutput.stderr);
-                throw new Error('auto did not complete successfully.');
-            }
-            return autoExecOutput.stdout;
+            const output = yield this.execAuto(args);
+            return output.stdout;
         });
     }
     version(onlyPublishWithReleaseVersion, from) {
@@ -28095,8 +28087,8 @@ class AutoCommandManager {
         return __awaiter(this, void 0, void 0, function* () {
             const result = new AutoExecOutput();
             let execArgs;
-            const stdout = [];
-            const stderr = [];
+            let stdout = [];
+            let stderr = ([] = []);
             const env = this.getEnv();
             if (core.isDebug()) {
                 execArgs = ['-vv', ...args, ...this.globalArgs];
@@ -28105,8 +28097,8 @@ class AutoCommandManager {
                 execArgs = [...args, ...this.globalArgs];
             }
             this.useNpmAuto && execArgs.unshift('auto');
-            const options = this.getExecOptions(stdout, stderr, env, allowAllExitCodes);
-            result.exitCode = yield exec.exec(`"${this.execCommand}"`, execArgs, options);
+            const options = this.getExecOptions(this.workingDirectory, stdout, stderr, env, allowAllExitCodes);
+            result.exitCode = yield exec.exec(`"${this.autoCommand}"`, execArgs, options);
             result.stdout = stdout.join('');
             result.stderr = stderr.join('');
             return result;
@@ -28122,9 +28114,9 @@ class AutoCommandManager {
         }
         return env;
     }
-    getExecOptions(stdout, stderr, env = {}, allowAllExitCodes = false) {
+    getExecOptions(workingDirectory, stdout, stderr, env = {}, allowAllExitCodes = false) {
         return {
-            cwd: path.resolve(__dirname),
+            cwd: workingDirectory,
             env,
             ignoreReturnCode: allowAllExitCodes,
             listeners: {
@@ -28137,19 +28129,22 @@ class AutoCommandManager {
             }
         };
     }
-    initializeCommandManager(repo, owner, githubApi, plugins) {
+    initializeCommandManager(workingDirectory, repo, owner, githubApi, plugins) {
         return __awaiter(this, void 0, void 0, function* () {
+            this.workingDirectory = workingDirectory;
             try {
-                this.execCommand = yield io.which('npx', true);
+                this.autoCommand = yield io.which('npx', true);
                 const stdout = [];
-                const stderr = [];
-                yield exec.exec('"npm"', ['ci', '--only=prod'], this.getExecOptions(stdout, stderr, this.getEnv()));
+                const env = this.getEnv();
+                const options = this.getExecOptions(this.workingDirectory, stdout, [], env);
+                const args = ['ci', '--only=prod'];
+                yield exec.exec('"npm"', args, options);
                 core.info(stdout === null || stdout === void 0 ? void 0 : stdout.join(''));
                 this.useNpmAuto = true;
             }
             catch (npxError) {
                 try {
-                    this.execCommand = yield io.which('auto', true);
+                    this.autoCommand = yield io.which('auto', true);
                 }
                 catch (autoError) {
                     throw new Error('Unable to locate executable file for either npx or auto');
@@ -28179,7 +28174,7 @@ class AutoCommandManager {
                 else {
                     autoVersion = new semver_1.SemVer(match[0]);
                     if (autoVersion < exports.MinimumAutoVersion) {
-                        throw new Error(`Minimum required auto version is ${exports.MinimumAutoVersion}. Your auto ('${this.execCommand}') is ${autoVersion}`);
+                        throw new Error(`Minimum required auto version is ${exports.MinimumAutoVersion}. Your auto ('${this.autoCommand}') is ${autoVersion}`);
                     }
                 }
             }

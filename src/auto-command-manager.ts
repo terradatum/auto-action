@@ -94,12 +94,14 @@ export interface IAutoCommandManager {
 }
 
 export async function createCommandManager(
+  workingDirectory: string,
   repo: string,
   owner: string,
   githubApi: string,
   plugins: string[]
 ): Promise<IAutoCommandManager> {
   return await AutoCommandManager.createCommandManager(
+    workingDirectory,
     repo,
     owner,
     githubApi,
@@ -108,21 +110,28 @@ export async function createCommandManager(
 }
 
 class AutoCommandManager implements IAutoCommandManager {
-  private autoEnv = {}
-  private execCommand = ''
+  private workingDirectory: string = ''
+  private autoEnv: {} = {}
+  private autoCommand: string = ''
   private globalArgs: string[] = []
   private useNpmAuto: boolean = false
-
   constructor() {}
 
   static async createCommandManager(
+    workingDirectory: string,
     repo: string,
     owner: string,
     githubApi: string,
     plugins: string[]
   ): Promise<AutoCommandManager> {
     const result = new AutoCommandManager()
-    await result.initializeCommandManager(repo, owner, githubApi, plugins)
+    await result.initializeCommandManager(
+      workingDirectory,
+      repo,
+      owner,
+      githubApi,
+      plugins
+    )
     return result
   }
 
@@ -173,16 +182,8 @@ class AutoCommandManager implements IAutoCommandManager {
     if (listPlugins) {
       args.push('--list-plugins')
     }
-    const autoExecOutput = await this.execAuto(args)
-    if (autoExecOutput.exitCode === 0) {
-      core.info(autoExecOutput.stdout)
-      core.debug(autoExecOutput.stderr)
-    } else {
-      core.error(autoExecOutput.stdout)
-      core.error(autoExecOutput.stderr)
-      throw new Error('auto did not complete successfully.')
-    }
-    return autoExecOutput.stdout
+    const output = await this.execAuto(args)
+    return output.stdout
   }
 
   async version(
@@ -440,8 +441,8 @@ class AutoCommandManager implements IAutoCommandManager {
   ): Promise<AutoExecOutput> {
     const result = new AutoExecOutput()
     let execArgs: string[]
-    const stdout: string[] = []
-    const stderr: string[] = []
+    let stdout: string[] = []
+    let stderr = ([] = [])
     const env = this.getEnv()
     if (core.isDebug()) {
       execArgs = ['-vv', ...args, ...this.globalArgs]
@@ -449,10 +450,16 @@ class AutoCommandManager implements IAutoCommandManager {
       execArgs = [...args, ...this.globalArgs]
     }
     this.useNpmAuto && execArgs.unshift('auto')
-    const options = this.getExecOptions(stdout, stderr, env, allowAllExitCodes)
+    const options = this.getExecOptions(
+      this.workingDirectory,
+      stdout,
+      stderr,
+      env,
+      allowAllExitCodes
+    )
 
     result.exitCode = await exec.exec(
-      `"${this.execCommand}"`,
+      `"${this.autoCommand}"`,
       execArgs,
       options
     )
@@ -473,13 +480,14 @@ class AutoCommandManager implements IAutoCommandManager {
   }
 
   private getExecOptions(
+    workingDirectory: string,
     stdout: string[],
     stderr: string[],
     env: {} = {},
     allowAllExitCodes: boolean = false
   ): ExecOptions {
     return {
-      cwd: path.resolve(__dirname),
+      cwd: workingDirectory,
       env,
       ignoreReturnCode: allowAllExitCodes,
       listeners: {
@@ -494,25 +502,30 @@ class AutoCommandManager implements IAutoCommandManager {
   }
 
   private async initializeCommandManager(
+    workingDirectory: string,
     repo: string,
     owner: string,
     githubApi: string,
     plugins: string[]
   ): Promise<void> {
+    this.workingDirectory = workingDirectory
     try {
-      this.execCommand = await io.which('npx', true)
+      this.autoCommand = await io.which('npx', true)
       const stdout: string[] = []
-      const stderr: string[] = []
-      await exec.exec(
-        '"npm"',
-        ['ci', '--only=prod'],
-        this.getExecOptions(stdout, stderr, this.getEnv())
+      const env = this.getEnv()
+      const options = this.getExecOptions(
+        this.workingDirectory,
+        stdout,
+        [],
+        env
       )
+      const args = ['ci', '--only=prod']
+      await exec.exec('"npm"', args, options)
       core.info(stdout?.join(''))
       this.useNpmAuto = true
     } catch (npxError) {
       try {
-        this.execCommand = await io.which('auto', true)
+        this.autoCommand = await io.which('auto', true)
       } catch (autoError) {
         throw new Error(
           'Unable to locate executable file for either npx or auto'
@@ -543,7 +556,7 @@ class AutoCommandManager implements IAutoCommandManager {
         autoVersion = new SemVer(match[0])
         if (autoVersion < MinimumAutoVersion) {
           throw new Error(
-            `Minimum required auto version is ${MinimumAutoVersion}. Your auto ('${this.execCommand}') is ${autoVersion}`
+            `Minimum required auto version is ${MinimumAutoVersion}. Your auto ('${this.autoCommand}') is ${autoVersion}`
           )
         }
       }
