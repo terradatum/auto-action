@@ -4819,20 +4819,18 @@ function run() {
     return __awaiter(this, void 0, void 0, function* () {
         const settings = inputHelper.getInputs();
         try {
-            core.debug(`Running auto with the following action settings:\n${settings}`);
+            core.debug(`Running auto with the following action settings:\n${JSON.stringify(settings)}`);
             const commandManager = yield autoCommandManager.createCommandManager(settings.repo, settings.owner, settings.githubApi, settings.plugins);
-            let stdout = yield commandManager.version(settings.onlyPublishWithReleaseLabel, settings.from);
-            // NOTE: The version command doesn't return a semver - it returns the string indication the KIND of semver bump
+            // TODO: Change the way stdout/stderr and exitCodes are handled
+            const version = yield commandManager.version(settings.onlyPublishWithReleaseLabel, settings.from);
+            // NOTE: The version command doesn't return a semver - it returns the string indication of the KIND of semver bump
+            //       E.g. major, minor, patch, etc.
             // TODO: Figure out what the semver will actually be
-            /*let autoOutputs = new AutoOutputs()
-            autoOutputs.version = new SemVer(stdout)
-            core.info(String(autoOutputs))*/
-            core.startGroup('Starting the run of auto');
             switch (settings.command) {
                 // Setup Commands
                 case auto_command_manager_1.AutoCommand.info: {
-                    stdout = yield commandManager.info(settings.listPlugins);
-                    core.info(stdout);
+                    // TODO: Change the way stdout/stderr and exitCodes are handled
+                    const info = yield commandManager.info(settings.listPlugins);
                     break;
                 }
                 // Publishing
@@ -4862,7 +4860,8 @@ function run() {
                 }
                 // PR Interaction
                 case auto_command_manager_1.AutoCommand.label: {
-                    yield commandManager.label(settings.pr);
+                    // TODO: Change the way stdout/stderr and exitCodes are handled
+                    const label = yield commandManager.label(settings.pr);
                     break;
                 }
                 case auto_command_manager_1.AutoCommand.prStatus: {
@@ -4882,7 +4881,6 @@ function run() {
                     break;
                 }
             }
-            core.endGroup();
             //outputHelper.setOutputs(autoOutputs)
         }
         catch (error) {
@@ -27843,7 +27841,7 @@ exports.createCommandManager = createCommandManager;
 class AutoCommandManager {
     constructor() {
         this.autoEnv = {};
-        this.autoCommand = '';
+        this.execCommand = '';
         this.globalArgs = [];
         this.useNpmAuto = false;
     }
@@ -27888,8 +27886,17 @@ class AutoCommandManager {
             if (listPlugins) {
                 args.push('--list-plugins');
             }
-            const output = yield this.execAuto(args);
-            return output.stdout;
+            const autoExecOutput = yield this.execAuto(args);
+            if (autoExecOutput.exitCode === 0) {
+                core.info(autoExecOutput.stdout);
+                core.debug(autoExecOutput.stderr);
+            }
+            else {
+                core.error(autoExecOutput.stdout);
+                core.error(autoExecOutput.stderr);
+                throw new Error('auto did not complete successfully.');
+            }
+            return autoExecOutput.stdout;
         });
     }
     version(onlyPublishWithReleaseVersion, from) {
@@ -27901,8 +27908,17 @@ class AutoCommandManager {
             if (from) {
                 args.push('--from', from);
             }
-            const output = yield this.execAuto(args);
-            return output.stdout;
+            const autoExecOutput = yield this.execAuto(args);
+            if (autoExecOutput.exitCode === 0) {
+                core.info(autoExecOutput.stdout);
+                core.debug(autoExecOutput.stderr);
+            }
+            else {
+                core.error(autoExecOutput.stdout);
+                core.error(autoExecOutput.stderr);
+                throw new Error('auto did not complete successfully.');
+            }
+            return autoExecOutput.stdout;
         });
     }
     changelog(dryRun, noVersionPrefix, name, email, from, to, title, message, baseBranch) {
@@ -27994,8 +28010,17 @@ class AutoCommandManager {
             if (pr > 0) {
                 args.push('--pr', pr.toString());
             }
-            const output = yield this.execAuto(args);
-            return output.stdout;
+            const autoExecOutput = yield this.execAuto(args);
+            if (autoExecOutput.exitCode === 0) {
+                core.info(autoExecOutput.stdout);
+                core.debug(autoExecOutput.stderr);
+            }
+            else {
+                core.error(autoExecOutput.stdout);
+                core.error(autoExecOutput.stderr);
+                throw new Error('auto did not complete successfully.');
+            }
+            return autoExecOutput.stdout;
         });
     }
     latest(dryRun, baseBranch) {
@@ -28068,9 +28093,10 @@ class AutoCommandManager {
     }
     execAuto(args, allowAllExitCodes = false) {
         return __awaiter(this, void 0, void 0, function* () {
-            const result = new AutoOutput();
+            const result = new AutoExecOutput();
             let execArgs;
             const stdout = [];
+            const stderr = [];
             const env = this.getEnv();
             if (core.isDebug()) {
                 execArgs = ['-vv', ...args, ...this.globalArgs];
@@ -28079,9 +28105,10 @@ class AutoCommandManager {
                 execArgs = [...args, ...this.globalArgs];
             }
             this.useNpmAuto && execArgs.unshift('auto');
-            const options = this.getExecOptions(stdout, env, allowAllExitCodes);
-            result.exitCode = yield exec.exec(`"${this.autoCommand}"`, execArgs, options);
+            const options = this.getExecOptions(stdout, stderr, env, allowAllExitCodes);
+            result.exitCode = yield exec.exec(`"${this.execCommand}"`, execArgs, options);
             result.stdout = stdout.join('');
+            result.stderr = stderr.join('');
             return result;
         });
     }
@@ -28095,7 +28122,7 @@ class AutoCommandManager {
         }
         return env;
     }
-    getExecOptions(stdout, env = {}, allowAllExitCodes = false) {
+    getExecOptions(stdout, stderr, env = {}, allowAllExitCodes = false) {
         return {
             cwd: path.resolve(__dirname),
             env,
@@ -28103,6 +28130,9 @@ class AutoCommandManager {
             listeners: {
                 stdout: (data) => {
                     stdout.push(data.toString());
+                },
+                stderr: (data) => {
+                    stderr.push(data.toString());
                 }
             }
         };
@@ -28110,18 +28140,16 @@ class AutoCommandManager {
     initializeCommandManager(repo, owner, githubApi, plugins) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                this.autoCommand = yield io.which('npx', true);
+                this.execCommand = yield io.which('npx', true);
                 const stdout = [];
-                const env = this.getEnv();
-                const options = this.getExecOptions(stdout, env);
-                const args = ['ci', '--only=prod'];
-                yield exec.exec('"npm"', args, options);
+                const stderr = [];
+                yield exec.exec('"npm"', ['ci', '--only=prod'], this.getExecOptions(stdout, stderr, this.getEnv()));
                 core.info(stdout === null || stdout === void 0 ? void 0 : stdout.join(''));
                 this.useNpmAuto = true;
             }
             catch (npxError) {
                 try {
-                    this.autoCommand = yield io.which('auto', true);
+                    this.execCommand = yield io.which('auto', true);
                 }
                 catch (autoError) {
                     throw new Error('Unable to locate executable file for either npx or auto');
@@ -28151,7 +28179,7 @@ class AutoCommandManager {
                 else {
                     autoVersion = new semver_1.SemVer(match[0]);
                     if (autoVersion < exports.MinimumAutoVersion) {
-                        throw new Error(`Minimum required auto version is ${exports.MinimumAutoVersion}. Your auto ('${this.autoCommand}') is ${autoVersion}`);
+                        throw new Error(`Minimum required auto version is ${exports.MinimumAutoVersion}. Your auto ('${this.execCommand}') is ${autoVersion}`);
                     }
                 }
             }
@@ -28185,12 +28213,14 @@ var PrState;
     PrState["error"] = "error";
     PrState["failure"] = "failure";
 })(PrState = exports.PrState || (exports.PrState = {}));
-class AutoOutput {
+class AutoExecOutput {
     constructor() {
         this.stdout = '';
+        this.stderr = '';
         this.exitCode = 0;
     }
 }
+exports.AutoExecOutput = AutoExecOutput;
 
 
 /***/ }),
