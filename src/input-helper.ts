@@ -37,7 +37,7 @@ export function getInputs(): IAutoSettings {
   const repoOwner = splitRepository[0]
   const repoName = splitRepository[1]
 
-  result.command = AutoCommand[core.getInput('commands') || 'shipit']
+  result.command = AutoCommand[core.getInput('command') || 'shipit']
 
   result.repo = core.getInput('repo') || repoName
 
@@ -50,7 +50,7 @@ export function getInputs(): IAutoSettings {
     ?.split('\n')
     ?.filter(x => x !== '')
 
-  result.dryRun = (core.getInput('dry-run') || 'false').toUpperCase() === 'TRUE'
+  result.dryRun = core.getInput('dry-run').toUpperCase() === 'TRUE'
 
   result.baseBranch = core.getInput('base-branch')
 
@@ -62,8 +62,9 @@ export function getInputs(): IAutoSettings {
     ).toUpperCase() === 'TRUE'
 
   result.onlyPublishWithReleaseLabel =
-    (core.getInput('only-publish-on-release-label') || 'true').toUpperCase() ===
-    'TRUE'
+    (
+      core.getInput('only-publish-with-release-label') || 'true'
+    ).toUpperCase() === 'TRUE'
 
   result.name = core.getInput('name')
 

@@ -12086,20 +12086,19 @@ function getInputs() {
     }
     const repoOwner = splitRepository[0];
     const repoName = splitRepository[1];
-    result.command = auto_command_manager_1.AutoCommand[core.getInput('commands') || 'shipit'];
+    result.command = auto_command_manager_1.AutoCommand[core.getInput('command') || 'shipit'];
     result.repo = core.getInput('repo') || repoName;
     result.owner = core.getInput('owner') || repoOwner;
     result.githubApi = core.getInput('github-api');
     result.plugins = (_b = (_a = core
         .getInput('plugins')) === null || _a === void 0 ? void 0 : _a.split('\n')) === null || _b === void 0 ? void 0 : _b.filter(x => x !== '');
-    result.dryRun = (core.getInput('dry-run') || 'false').toUpperCase() === 'TRUE';
+    result.dryRun = core.getInput('dry-run').toUpperCase() === 'TRUE';
     result.baseBranch = core.getInput('base-branch');
     result.from = core.getInput('from');
     result.onlyGraduateWithReleaseLabel =
         (core.getInput('only-graduate-with-release-label') || 'false').toUpperCase() === 'TRUE';
     result.onlyPublishWithReleaseLabel =
-        (core.getInput('only-publish-on-release-label') || 'true').toUpperCase() ===
-            'TRUE';
+        (core.getInput('only-publish-with-release-label') || 'true').toUpperCase() === 'TRUE';
     result.name = core.getInput('name');
     result.email = core.getInput('email');
     result.noVersionPrefix =
