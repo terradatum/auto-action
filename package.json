@@ -46,7 +46,7 @@
     "@types/semver": "^7.1.0",
     "@types/uuid": "^3.4.6",
     "@typescript-eslint/parser": "^2.8.0",
-    "@zeit/ncc": "^0.20.5",
+    "@zeit/ncc": "^0.22.1",
     "eslint": "^5.16.0",
     "eslint-plugin-github": "^2.0.0",
     "eslint-plugin-jest": "^22.21.0",
