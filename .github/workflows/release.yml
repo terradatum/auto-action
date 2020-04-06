@@ -1,9 +1,8 @@
 name: Build and Release
 
 on:
-  push:
-    branches:
-      - master
+  repository_dispatch:
+    types: [release]
 
 jobs:
   release:
@@ -14,16 +13,14 @@ jobs:
         uses: actions/checkout@v2
       - run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
       - run: npm ci
-      - run: npm run build
-      - run: npm run format-check
-      - run: npm run lint
-      - run: npm test
+      - run: npm run all
       - name: auto release
         uses: ./
         with:
           plugins: |
             npm
             released
+          only-publish-with-release-label: false
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
