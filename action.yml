@@ -1,4 +1,4 @@
-name: 'auto'
+name: 'Auto Action'
 description: 'Generate releases based on semantic version labels on pull requests, and other pull request automation tools.'
 inputs:
   command:

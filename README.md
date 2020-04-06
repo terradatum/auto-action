@@ -1,6 +1,6 @@
-# auto Action
+# Auto Action
 
-![][workflows-badge-image]
+![Build and Release][workflows-badge-image]
 [![Release date][release-date-image]][release-url]
 [![auto-release][auto-image]][auto-url]
 [![npm license][license-image]][license-url]
@@ -242,8 +242,7 @@ See [CHANGELOG][changelog-url].
 This project is released under the [MIT License][license-url].
 
 <!-- Links: -->
-[workflows-badge-image]: https://github.com/terradatum/auto-action/workflows/Test%20Release/badge.svg
-
+[workflows-badge-image]: https://github.com/terradatum/auto-action/workflows/Build%20and%20Release/badge.svg
 [release-date-image]: https://img.shields.io/github/release-date/terradatum/auto-action
 [release-url]: https://github.com/terradatum/auto-action/releases
 
@@ -251,7 +250,7 @@ This project is released under the [MIT License][license-url].
 [auto-url]: https://github.com/intuit/auto
 
 [license-image]: https://img.shields.io/npm/l/@terradatum/auto-action.svg
-[license-url]: https://github.com/terradatum/auto-action/blob/master/LICENSE
+[license-url]: https://github.com/terradatum/auto-action/blob/master/LICENSE.md
 
 [changelog-url]: https://github.com/terradatum/auto-action/blob/master/CHANGELOG.md
 
