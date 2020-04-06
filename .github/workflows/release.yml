@@ -1,8 +1,9 @@
 name: Build and Release
 
 on:
-  repository_dispatch:
-    types: [release]
+  push:
+    branches:
+      - master
 
 jobs:
   release:
@@ -11,7 +12,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+      - run: git fetch --unshallow --tags
       - run: npm ci
       - run: npm run all
       - name: auto release
@@ -20,7 +21,6 @@ jobs:
           plugins: |
             npm
             released
-          only-publish-with-release-label: false
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
