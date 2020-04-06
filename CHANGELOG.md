@@ -1,3 +1,15 @@
+# v1.0.3 (Mon Apr 06 2020)
+
+#### 🐛 Bug Fix
+
+- Mark the package as public [#7](https://github.com/terradatum/auto-action/pull/7) ([@rbellamy](https://github.com/rbellamy))
+
+#### Authors: 1
+
+- G. Richard Bellamy ([@rbellamy](https://github.com/rbellamy))
+
+---
+
 # v1.0.2 (Sun Apr 05 2020)
 
 #### 🐛 Bug Fix
