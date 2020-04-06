@@ -1,3 +1,15 @@
+# v1.0.8 (Mon Apr 06 2020)
+
+#### 🐛 Bug Fix
+
+- Must have git history in checkout [#23](https://github.com/terradatum/auto-action/pull/23) ([@rbellamy](https://github.com/rbellamy))
+
+#### Authors: 1
+
+- G. Richard Bellamy ([@rbellamy](https://github.com/rbellamy))
+
+---
+
 # v1.0.7 (Mon Apr 06 2020)
 
 
