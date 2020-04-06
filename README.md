@@ -21,7 +21,17 @@ In general the workflow is:
 # Usage
 
 If your project uses npm, this action will attempt to run auto using npx. If that fails, it will go looking in the $PATH
-for a binary. If it finds neither, it will not run. 
+for a binary. If it finds neither, it will not run.
+
+auto expects to have the full history and tags available for inspection, you must use `git fetch --unshallow --tags` when
+checking out your code:
+
+```yaml
+steps:
+  - name: Checkout
+    uses: actions/checkout@v2
+  - run: git fetch --unshallow --tags
+```
 
 <!-- start usage -->
 ```yaml
@@ -97,9 +107,11 @@ for a binary. If it finds neither, it will not run.
     # with "release" label will generate a "latest" release. Only use this flag if you
     # do not want to maintain a prerelease branch, and instead only want to use
     # master. (shipit)
+    # Default: false
     only-graduate-with-release-label: ''
 
     # Only bump version if 'release' label is on pull request. (version, shipit)
+    # Default: true
     only-publish-with-release-label: ''
 
     # The name to use with git. Defaults to package definitions for the platform.
@@ -139,12 +151,14 @@ for a binary. If it finds neither, it will not run.
     use-version: ''
 
     # Publish a prerelease. (release)
+    # Default: false
     pre-release: ''
 
     # Build number to use to create the canary version. Detected in CI env. (canary)
     build: ''
 
     # Force a canary release, even if the PR is marked to skip the release (canary)
+    # Default: false
     force: ''
 
     # A string label to differentiate this status from others. (pr-status, pr-check,
@@ -165,9 +179,11 @@ for a binary. If it finds neither, it will not run.
     description: ''
 
     # Edit an old comment. (pr-body)
+    # Default: false
     edit: ''
 
     # Delete an old comment. (pr-body)
+    # Default: false
     delete: ''
 
     # The working directory
@@ -207,6 +223,7 @@ Expects correct setup with an `.autorc` and correct values in your package contr
 steps:
   - name: Checkout
     uses: actions/checkout@v2
+  - run: git fetch --unshallow --tags
   - name: auto shipit
     uses: terradatum/auto-action@master
     env:
@@ -220,6 +237,7 @@ steps:
 steps:
   - name: Checkout
     uses: actions/checkout@v2
+  - run: git fetch --unshallow --tags
   - name: auto release
     uses: terradatum/auto-action@master
     env:

@@ -1,18 +1,16 @@
-name: Build and Release
+name: Dispatch - Build and Release
 
 on:
-  push:
-    branches:
-      - master
+  repository_dispatch:
+    types: [release]
 
 jobs:
   release:
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, 'ci skip') && !contains(github.event.head_commit.message, 'skip ci')"
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+      - run: git fetch --unshallow --tags
       - run: npm ci
       - run: npm run all
       - name: auto release
@@ -21,6 +19,7 @@ jobs:
           plugins: |
             npm
             released
+          only-publish-with-release-label: false
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

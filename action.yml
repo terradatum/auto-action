@@ -70,9 +70,11 @@ inputs:
       Make auto publish prerelease versions when merging to master. Only PRs merged with "release" label will generate a
       "latest" release. Only use this flag if you do not want to maintain a prerelease branch, and instead only want to
       use master. (shipit)
+    default: 'false'
     required: false
   only-publish-with-release-label:
     description: "Only bump version if 'release' label is on pull request. (version, shipit)"
+    default: 'true'
     required: false
   name:
     description: 'The name to use with git. Defaults to package definitions for the platform. (changelog, release)'
@@ -111,12 +113,14 @@ inputs:
     required: false
   pre-release:
     description: 'Publish a prerelease. (release)'
+    default: 'false'
     required: false
   build:
     description: 'Build number to use to create the canary version. Detected in CI env. (canary)'
     required: false
   force:
     description: 'Force a canary release, even if the PR is marked to skip the release (canary)'
+    default: 'false'
     required: false
   context:
     description: 'A string label to differentiate this status from others. (pr-status, pr-check, pr-body, comment)'
@@ -135,9 +139,11 @@ inputs:
     required: false
   edit:
     description: 'Edit an old comment. (pr-body)'
+    default: 'false'
     required: false
   delete:
     description: 'Delete an old comment. (pr-body)'
+    default: 'false'
     required: false
   workingDirectory:
     description: 'The working directory'
