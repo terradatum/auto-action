@@ -5,6 +5,7 @@
 - [ ] Documentation
 - [ ] Refactor
 - [ ] Chore
+- [ ] Dependencies
 
 ### Resolves
 - Fixes #[Add issue number here.]
