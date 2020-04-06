@@ -20,7 +20,8 @@ describe('input-helper tests', () => {
   beforeAll(() => {
     // Mock getInput
     jest.spyOn(core, 'getInput').mockImplementation((name: string) => {
-      return inputs[name]
+      const val: string = inputs[name] || ''
+      return val.trim()
     })
 
     // Mock error/warning/info/debug
@@ -75,7 +76,7 @@ describe('input-helper tests', () => {
     expect(settings.repo).toBe('some-repo')
     expect(settings.owner).toBe('some-owner')
     expect(settings.githubApi).toBeFalsy()
-    expect(settings.plugins).toBeFalsy()
+    expect(settings.plugins).toHaveLength(0)
     expect(settings.dryRun).toBe(false)
     expect(settings.baseBranch).toBeFalsy()
     expect(settings.from).toBeFalsy()
@@ -116,6 +117,18 @@ describe('input-helper tests', () => {
     const settings: IAutoSettings = inputHelper.getInputs()
     expect(settings).toBeTruthy()
     expect(settings.dryRun).toBe(true)
+    expect(settings.plugins).toStrictEqual(['npm', 'git-tag'])
+  })
+
+  it('sets onlyPublishWithReleaseLabel to the correct boolean', () => {
+    // NOTE: Currently GitHub actions is using Yaml 1.1 which has no support for booleans - thus all 'true'/'false' is dealt
+    //       with as strings. This means that the code will fail if EVER a true boolean is accepted from the workflow
+    // inputs['only-publish-with-release-label'] = false
+    inputs['only-publish-with-release-label'] = 'false'
+    inputs['plugins'] = 'npm\ngit-tag'
+    const settings = inputHelper.getInputs()
+    expect(settings).toBeTruthy()
+    expect(settings.onlyPublishWithReleaseLabel).toBe(false)
     expect(settings.plugins).toStrictEqual(['npm', 'git-tag'])
   })
 })
