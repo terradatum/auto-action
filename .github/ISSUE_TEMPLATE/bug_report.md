@@ -1,17 +1,32 @@
 ---
 name: Bug report
 about: Create a report to help us improve
-
+labels: bug
 ---
 
 **Describe the bug**
-A clear and concise description of what the bug is.
 
-**Workflow**
-If applicable, provide a workflow file to help explain your problem.
+<!-- A clear and concise description of what the bug is. -->
+
+**To Reproduce**
+
+<!-- Steps to reproduce the behavior: -->
 
 **Expected behavior**
-A clear and concise description of what you expected to happen.
+
+<!-- A clear and concise description of what you expected to happen. -->
+
+**Screenshots**
+
+<!-- If applicable, add screenshots to help explain your problem. -->
+
+**Environment information:**
+
+<!-- Please run `npx auto info` and put the results in the section below -->
+
+```txt
+```
 
 **Additional context**
-Add any other context about the problem here.
+
+<!-- Add any other context about the problem here. -->
