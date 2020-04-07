@@ -185,10 +185,6 @@ steps:
     # Delete an old comment. (pr-body)
     # Default: false
     delete: ''
-
-    # The working directory
-    # Default: ${{ env.GITHUB_WORKSPACE }}
-    workingDirectory: ''
 ```
 <!-- end usage -->
 
