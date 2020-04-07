@@ -536,7 +536,7 @@ class AutoCommandManager implements IAutoCommandManager {
     let stderr = ([] = [])
     const env = this.getEnv()
     if (core.isDebug()) {
-      execArgs = ['-vv', ...args, ...this.globalArgs]
+      execArgs = [...args, '-vv', ...this.globalArgs]
     } else {
       execArgs = [...args, ...this.globalArgs]
     }
@@ -603,16 +603,18 @@ class AutoCommandManager implements IAutoCommandManager {
     try {
       this.autoCommand = await io.which('npx', true)
       const stdout: string[] = []
+      const stderr: string[] = []
       const env = this.getEnv()
       const options = this.getExecOptions(
         this.workingDirectory,
         stdout,
-        [],
+        stderr,
         env
       )
       const args = ['ci', '--only=prod']
       await exec.exec('"npm"', args, options)
       core.info(stdout?.join(''))
+      core.debug(stderr?.join(''))
       this.useNpmAuto = true
     } catch (npxError) {
       try {

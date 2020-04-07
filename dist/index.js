@@ -28110,7 +28110,7 @@ class AutoCommandManager {
             let stderr = ([] = []);
             const env = this.getEnv();
             if (core.isDebug()) {
-                execArgs = ['-vv', ...args, ...this.globalArgs];
+                execArgs = [...args, '-vv', ...this.globalArgs];
             }
             else {
                 execArgs = [...args, ...this.globalArgs];
@@ -28154,11 +28154,13 @@ class AutoCommandManager {
             try {
                 this.autoCommand = yield io.which('npx', true);
                 const stdout = [];
+                const stderr = [];
                 const env = this.getEnv();
-                const options = this.getExecOptions(this.workingDirectory, stdout, [], env);
+                const options = this.getExecOptions(this.workingDirectory, stdout, stderr, env);
                 const args = ['ci', '--only=prod'];
                 yield exec.exec('"npm"', args, options);
                 core.info(stdout === null || stdout === void 0 ? void 0 : stdout.join(''));
+                core.debug(stderr === null || stderr === void 0 ? void 0 : stderr.join(''));
                 this.useNpmAuto = true;
             }
             catch (npxError) {
