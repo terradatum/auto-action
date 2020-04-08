@@ -28164,10 +28164,12 @@ class AutoCommandManager {
                 this.useNpmAuto = true;
             }
             catch (npxError) {
+                core.debug(npxError);
                 try {
                     this.autoCommand = yield io.which('auto', true);
                 }
                 catch (autoError) {
+                    core.debug(autoError);
                     throw new Error('Unable to locate executable file for either npx or auto');
                 }
             }

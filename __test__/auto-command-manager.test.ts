@@ -8,8 +8,8 @@ import * as inputHelper from '../src/input-helper'
 import * as autoCommandManager from '../src/auto-command-manager'
 import * as fsHelper from '../src/fs-helper'
 import * as exec from '@actions/exec'
-import set = Reflect.set
 
+const originalActionStepDebug = process.env['RUNNER_DEBUG']
 const originalGitHubWorkspace = process.env['GITHUB_WORKSPACE']
 const gitHubWorkspace = path.resolve('/checkout-tests/workspace')
 
@@ -39,6 +39,7 @@ describe('auto-command-manager tests', () => {
 
     // GitHub workspace
     process.env['GITHUB_WORKSPACE'] = gitHubWorkspace
+    delete process.env.RUNNER_DEBUG
   })
 
   afterAll(() => {
@@ -46,6 +47,9 @@ describe('auto-command-manager tests', () => {
     delete process.env['GITHUB_WORKSPACE']
     if (originalGitHubWorkspace) {
       process.env['GITHUB_WORKSPACE'] = originalGitHubWorkspace
+    }
+    if (originalActionStepDebug) {
+      process.env['RUNNER_DEBUG'] = originalActionStepDebug
     }
 
     jest.resetAllMocks()
@@ -98,9 +102,6 @@ describe('auto-command-manager tests', () => {
     })
 
     const settings: IAutoSettings = inputHelper.getInputs()
-    const expectedArgs = core.isDebug()
-      ? ['-vv', '--version', '--repo', 'some-repo', '--owner', 'some-owner']
-      : ['--version', '--repo', 'some-repo', '--owner', 'some-owner']
     expect.assertions(3)
     await expect(
       autoCommandManager.createCommandManager(
@@ -116,13 +117,69 @@ describe('auto-command-manager tests', () => {
     expect(execMock).toHaveBeenCalledTimes(1)
     expect(execMock).toHaveBeenCalledWith(
       '"auto"',
-      expectedArgs,
+      ['--version', '--repo', 'some-repo', '--owner', 'some-owner'],
+      expect.anything()
+    )
+  })
+
+  it('creation uses "npx auto" with verbose when ACTION_STEP_DEBUG is true', async () => {
+    const execMock = jest.spyOn(exec, 'exec')
+    jest.spyOn(core, 'isDebug').mockImplementation(() => true)
+    jest.spyOn(io, 'which').mockImplementation(tool => {
+      if (tool === 'npx') {
+        return Promise.resolve(tool)
+      } else {
+        if (ioUtil.IS_WINDOWS) {
+          throw new Error(
+            `Unable to locate executable file: ${tool}. Please verify either the file path exists or the file can be found within a directory specified by the PATH environment variable. Also verify the file has a valid extension for an executable file.`
+          )
+        } else {
+          throw new Error(
+            `Unable to locate executable file: ${tool}. Please verify either the file path exists or the file can be found within a directory specified by the PATH environment variable. Also check the file mode to verify the file is executable.`
+          )
+        }
+      }
+    })
+
+    const settings: IAutoSettings = inputHelper.getInputs()
+    expect.assertions(4)
+    await expect(
+      autoCommandManager.createCommandManager(
+        settings.workingDirectory,
+        settings.repo,
+        settings.owner,
+        settings.githubApi,
+        settings.plugins
+      )
+    ).rejects.toMatchObject({
+      message: expect.stringMatching(/Unable to determine the auto version/)
+    })
+    expect(execMock).toHaveBeenCalledTimes(2)
+    expect(execMock).toHaveBeenNthCalledWith(
+      1,
+      '"npm"',
+      ['ci', '--only=prod'],
+      expect.anything()
+    )
+    expect(execMock).toHaveBeenNthCalledWith(
+      2,
+      '"npx"',
+      [
+        'auto',
+        '--version',
+        '-vv',
+        '--repo',
+        'some-repo',
+        '--owner',
+        'some-owner'
+      ],
       expect.anything()
     )
   })
 
   /**
    * TODO: Figure out how to inject arbitrary strings to test stdout.
+   *       https://github.com/actions/toolkit/blob/master/packages/core/__tests__/core.test.ts
    */
   /*
     it('creation throws an error if the executable is found and has the wrong version', async () => {
