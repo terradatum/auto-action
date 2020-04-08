@@ -1,3 +1,20 @@
+# v1.0.10 (Wed Apr 08 2020)
+
+#### 🐛 Bug Fix
+
+- Merge branch 'master' into fix-verbose-flag-on-step-debug [#30](https://github.com/terradatum/auto-action/pull/30) ([@rbellamy](https://github.com/rbellamy))
+- Merge branch 'dependabot/npm_and_yarn/eslint-6.8.0' [#32](https://github.com/terradatum/auto-action/pull/32) ([@rbellamy](https://github.com/rbellamy))
+- Merge branch 'dependabot/npm_and_yarn/auto-it/released-9.26.7' [#33](https://github.com/terradatum/auto-action/pull/33) ([@rbellamy](https://github.com/rbellamy))
+- Merge branch 'dependabot/npm_and_yarn/auto-it/npm-9.26.7' [#34](https://github.com/terradatum/auto-action/pull/34) ([@rbellamy](https://github.com/rbellamy))
+- Bump auto from 9.26.4 to 9.26.7 [#31](https://github.com/terradatum/auto-action/pull/31) ([@dependabot-preview[bot]](https://github.com/dependabot-preview[bot]))
+
+#### Authors: 2
+
+- [@dependabot-preview[bot]](https://github.com/dependabot-preview[bot])
+- G. Richard Bellamy ([@rbellamy](https://github.com/rbellamy))
+
+---
+
 # v1.0.9 (Tue Apr 07 2020)
 
 #### 🐛 Bug Fix
