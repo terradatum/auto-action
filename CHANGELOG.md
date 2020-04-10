@@ -1,3 +1,21 @@
+# v1.0.11 (Fri Apr 10 2020)
+
+#### 🐛 Bug Fix
+
+- Dependabot/merge [#41](https://github.com/terradatum/auto-action/pull/41) ([@dependabot-preview[bot]](https://github.com/dependabot-preview[bot]) [@rbellamy](https://github.com/rbellamy))
+- Merge remote-tracking branch 'origin/dependabot/npm_and_yarn/types/node-13.11.1' into dependabot/merge [#40](https://github.com/terradatum/auto-action/pull/40) ([@rbellamy](https://github.com/rbellamy))
+- Merge remote-tracking branch 'origin/dependabot/npm_and_yarn/jest-circus-25.3.0' into dependabot/merge [#39](https://github.com/terradatum/auto-action/pull/39) ([@rbellamy](https://github.com/rbellamy))
+- Merge remote-tracking branch 'origin/dependabot/npm_and_yarn/jest-25.3.0' into dependabot/merge [#36](https://github.com/terradatum/auto-action/pull/36) ([@rbellamy](https://github.com/rbellamy))
+- Merge remote-tracking branch 'origin/dependabot/npm_and_yarn/auto-it/released-9.26.8' into dependabot/merge [#35](https://github.com/terradatum/auto-action/pull/35) ([@rbellamy](https://github.com/rbellamy))
+- Merge remote-tracking branch 'origin/dependabot/npm_and_yarn/auto-it/npm-9.26.8' into dependabot/merge [#38](https://github.com/terradatum/auto-action/pull/38) ([@rbellamy](https://github.com/rbellamy))
+
+#### Authors: 2
+
+- [@dependabot-preview[bot]](https://github.com/dependabot-preview[bot])
+- G. Richard Bellamy ([@rbellamy](https://github.com/rbellamy))
+
+---
+
 # v1.0.10 (Wed Apr 08 2020)
 
 #### 🐛 Bug Fix
