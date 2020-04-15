@@ -36,7 +36,7 @@
     "@actions/tool-cache": "^1.1.2",
     "@auto-it/npm": "^9.26.8",
     "@auto-it/released": "^9.26.8",
-    "auto": "^9.26.8",
+    "auto": "^9.27.1",
     "semver": "^7.2.1",
     "uuid": "^7.0.3"
   },
