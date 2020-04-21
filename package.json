@@ -35,7 +35,7 @@
     "@actions/io": "^1.0.1",
     "@actions/tool-cache": "^1.1.2",
     "@auto-it/npm": "^9.26.8",
-    "@auto-it/released": "^9.26.8",
+    "@auto-it/released": "^9.28.3",
     "auto": "^9.26.8",
     "semver": "^7.2.1",
     "uuid": "^7.0.3"
