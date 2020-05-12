@@ -34,7 +34,7 @@
     "@actions/github": "^2.0.2",
     "@actions/io": "^1.0.1",
     "@actions/tool-cache": "^1.1.2",
-    "@auto-it/npm": "^9.26.8",
+    "@auto-it/npm": "^9.32.0",
     "@auto-it/released": "^9.26.8",
     "auto": "^9.26.8",
     "semver": "^7.2.1",
