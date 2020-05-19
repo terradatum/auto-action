@@ -1,0 +1,44 @@
+{
+  "extends": ["group:monorepos", "packages:postcss"],
+  "automerge": false,
+  "prHourlyLimit": 0,
+  "prConcurrentLimit": 0,
+  "separateMajorMinor": false,
+  "schedule": ["before 3am on the first day of the month"],
+  "patch": {
+    "labels": ["dependencies"]
+  },
+  "minor": {
+    "labels": ["dependencies"]
+  },
+  "major": {
+    "labels": ["dependencies"]
+  },
+  "digest": {
+    "labels": ["dependencies"]
+  },
+  "packageRules": [
+    {
+      "packagePatterns": ["@proof-ui"],
+      "groupName": "proof"
+    },
+    {
+      "packagePatterns": ["@reach"],
+      "groupName": "reach"
+    },
+    {
+      "packagePatterns": ["auto", "@auto-it"],
+      "groupName": "auto",
+      "excludePackageNames": ["autoprefixer"]
+    },
+    {
+      "extends": "packages:linters",
+      "packagePatterns": ["^eslint"],
+      "groupName": "linters"
+    },
+    {
+      "packagePatterns": ["stylelint"],
+      "groupName": "stylelint"
+    }
+  ]
+}
