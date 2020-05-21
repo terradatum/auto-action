@@ -1,3 +1,16 @@
+# v1.0.12 (Thu May 21 2020)
+
+#### 🐛 Bug Fix
+
+- Detect "package.json" to determine how to run auto [#118](https://github.com/terradatum/auto-action/pull/118) ([@rbellamy](https://github.com/rbellamy))
+- Replace dependabot with renovate ([@rbellamy](https://github.com/rbellamy))
+
+#### Authors: 1
+
+- G. Richard Bellamy ([@rbellamy](https://github.com/rbellamy))
+
+---
+
 # v1.0.11 (Fri Apr 10 2020)
 
 #### 🐛 Bug Fix
