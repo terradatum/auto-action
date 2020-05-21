@@ -4,7 +4,7 @@ import * as io from '@actions/io'
 import {SemVer} from 'semver'
 import semver from 'semver/preload'
 import {ExecOptions} from '@actions/exec/lib/interfaces'
-import fs from 'fs'
+import * as fsHelper from '../src/fs-helper'
 
 export const MinimumAutoVersion = new SemVer('9.26.0')
 
@@ -602,7 +602,7 @@ class AutoCommandManager implements IAutoCommandManager {
   ): Promise<void> {
     this.workingDirectory = workingDirectory
     // The assumption is that if there is a package.json file, this is an npm project and will use auto via npx
-    if (fs.existsSync('package.json')) {
+    if (fsHelper.existsSync('package.json')) {
       this.autoCommand = await io.which('npx', true)
       this.useNpxAuto = true
     } else {
