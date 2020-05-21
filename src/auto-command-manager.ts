@@ -4,6 +4,7 @@ import * as io from '@actions/io'
 import {SemVer} from 'semver'
 import semver from 'semver/preload'
 import {ExecOptions} from '@actions/exec/lib/interfaces'
+import * as fsHelper from '../src/fs-helper'
 
 export const MinimumAutoVersion = new SemVer('9.26.0')
 
@@ -132,7 +133,7 @@ class AutoCommandManager implements IAutoCommandManager {
   private autoEnv: {} = {}
   private autoCommand: string = ''
   private globalArgs: string[] = []
-  private useNpmAuto: boolean = false
+  private useNpxAuto: boolean = false
 
   constructor() {}
 
@@ -308,7 +309,7 @@ class AutoCommandManager implements IAutoCommandManager {
     onlyGraduateWithReleaseLabel: boolean
   ): Promise<void> {
     const args: string[] = [AutoCommand.shipit]
-    this.commonShipitLatestArgs(
+    AutoCommandManager.commonShipitLatestArgs(
       args,
       dryRun,
       noVersionPrefix,
@@ -326,7 +327,7 @@ class AutoCommandManager implements IAutoCommandManager {
     await this.execAuto(args)
   }
 
-  private commonShipitLatestArgs(
+  private static commonShipitLatestArgs(
     args: string[],
     dryRun: boolean,
     noVersionPrefix: boolean,
@@ -434,7 +435,7 @@ class AutoCommandManager implements IAutoCommandManager {
     onlyPublishWithReleaseLabel: boolean
   ): Promise<void> {
     const args: string[] = [AutoCommand.latest]
-    this.commonShipitLatestArgs(
+    AutoCommandManager.commonShipitLatestArgs(
       args,
       dryRun,
       noVersionPrefix,
@@ -540,7 +541,7 @@ class AutoCommandManager implements IAutoCommandManager {
     } else {
       execArgs = [...args, ...this.globalArgs]
     }
-    this.useNpmAuto && execArgs.unshift('auto')
+    this.useNpxAuto && execArgs.unshift('auto')
     const options = this.getExecOptions(
       this.workingDirectory,
       stdout,
@@ -600,32 +601,12 @@ class AutoCommandManager implements IAutoCommandManager {
     plugins: string[]
   ): Promise<void> {
     this.workingDirectory = workingDirectory
-    try {
+    // The assumption is that if there is a package.json file, this is an npm project and will use auto via npx
+    if (fsHelper.existsSync('package.json')) {
       this.autoCommand = await io.which('npx', true)
-      const stdout: string[] = []
-      const stderr: string[] = []
-      const env = this.getEnv()
-      const options = this.getExecOptions(
-        this.workingDirectory,
-        stdout,
-        stderr,
-        env
-      )
-      const args = ['ci', '--only=prod']
-      await exec.exec('"npm"', args, options)
-      core.info(stdout?.join(''))
-      core.debug(stderr?.join(''))
-      this.useNpmAuto = true
-    } catch (npxError) {
-      core.debug(npxError)
-      try {
-        this.autoCommand = await io.which('auto', true)
-      } catch (autoError) {
-        core.debug(autoError)
-        throw new Error(
-          'Unable to locate executable file for either npx or auto'
-        )
-      }
+      this.useNpxAuto = true
+    } else {
+      this.autoCommand = await io.which('auto', true)
     }
     if (repo) {
       this.globalArgs.push('--repo', repo)
